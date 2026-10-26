@@ -166,35 +166,6 @@
                 @endif
             </div>
         </div>
-
-        <!-- Card 4: Overdue & Fines -->
-        <div class="bg-white p-5 rounded-2xl border {{ $stats['overdue_loans'] > 0 ? 'border-[#F4D1CA]' : 'border-[#E7E3DA]' }} shadow-xs hover:border-[#D6CEBF] hover:shadow-sm transition-all duration-200 group flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-semibold text-stone-500 uppercase tracking-wider">Terlambat & Denda</span>
-                    <span class="w-9 h-9 rounded-xl bg-[#FBF0ED] text-[#B84233] border border-[#F4D1CA] flex items-center justify-center transition group-hover:scale-105">
-                        <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </span>
-                </div>
-                <div class="mt-3 flex items-baseline gap-2">
-                    <div class="text-3xl font-serif font-bold {{ $stats['overdue_loans'] > 0 ? 'text-[#B84233]' : 'text-[#183527]' }} tracking-tight">
-                        {{ number_format($stats['overdue_loans']) }}
-                    </div>
-                    @if($stats['overdue_loans'] > 0)
-                        <span class="text-[10px] font-semibold text-[#B84233] bg-[#FBF0ED] px-1.5 py-0.5 rounded border border-[#F4D1CA]">Buku</span>
-                    @endif
-                </div>
-            </div>
-
-            <div class="mt-4 pt-3 border-t border-[#F0ECE1] flex items-center justify-between text-[11px]">
-                <span class="text-stone-500">Total Denda:</span>
-                <span class="font-bold {{ $stats['total_fines'] > 0 ? 'text-[#B84233]' : 'text-stone-800' }} font-mono">
-                    Rp {{ number_format($stats['total_fines'], 0, ',', '.') }}
-                </span>
-            </div>
-        </div>
     </div>
 
     <!-- Two Columns: Recent Visits & Recent Loans -->
@@ -428,13 +399,6 @@
                         <label class="block text-xs font-semibold text-stone-700 mb-1">Tanggal Pengembalian</label>
                         <input type="date" name="return_date" x-model="returnDate" @change="calculateFine(selectedLoan)" class="w-full px-3 py-2 border border-[#E7E3DA] rounded-xl text-xs focus:ring-2 focus:ring-[#183527] focus:border-[#183527] outline-none transition bg-white">
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-stone-700 mb-1">Total Denda (Rp)</label>
-                        <input type="number" name="fine_amount" x-model="fineAmount" class="w-full px-3 py-2 border border-[#E7E3DA] rounded-xl text-xs font-semibold text-[#B84233] focus:ring-2 focus:ring-[#B84233] focus:border-[#B84233] outline-none transition font-mono bg-white">
-                        <span class="text-[10px] text-stone-400 mt-1 block">Tarif sistem: Rp 1.000 / hari keterlambatan.</span>
-                    </div>
-
                     <div>
                         <label class="block text-xs font-semibold text-stone-700 mb-1">Catatan Pustakawan (Kondisi Buku)</label>
                         <textarea name="librarian_notes" x-model="notes" rows="2" placeholder="Contoh: Kondisi buku baik, halaman utuh dan bersih" class="w-full px-3 py-2 border border-[#E7E3DA] rounded-xl text-xs focus:ring-2 focus:ring-[#183527] focus:border-[#183527] outline-none transition bg-white"></textarea>

@@ -29,7 +29,6 @@ class Loan extends Model
         'due_date',
         'return_date',
         'status',
-        'fine_amount',
         'librarian_notes',
     ];
 
@@ -44,7 +43,6 @@ class Loan extends Model
             'loan_date' => 'date',
             'due_date' => 'date',
             'return_date' => 'date',
-            'fine_amount' => 'decimal:2',
         ];
     }
 

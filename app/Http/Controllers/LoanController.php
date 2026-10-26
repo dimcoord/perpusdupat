@@ -82,10 +82,8 @@ class LoanController extends Controller
         // Calculate potential dynamic overdue status for active loans
         foreach ($loans as $loan) {
             if ($loan->status === 'dipinjam' && Carbon::parse($loan->due_date)->isPast()) {
-                $loan->calculated_fine = $loan->calculateFine()['fine'];
                 $loan->is_overdue = true;
             } else {
-                $loan->calculated_fine = (float) $loan->fine_amount;
                 $loan->is_overdue = ($loan->status === 'terlambat');
             }
         }
@@ -160,7 +158,6 @@ class LoanController extends Controller
                 'loan_date' => $loanDate->toDateString(),
                 'due_date' => $dueDate->toDateString(),
                 'status' => $status,
-                'fine_amount' => 0,
             ]);
         });
 
@@ -213,31 +210,16 @@ class LoanController extends Controller
 
         $returnDate = $request->input('return_date') ? Carbon::parse($request->input('return_date')) : Carbon::today();
 
-        // Calculate fine
-        $dueDate = Carbon::parse($loan->due_date)->startOfDay();
-        $fineAmount = $request->filled('fine_amount')
-            ? (float) $request->input('fine_amount')
-            : 0;
-
-        if (! $request->filled('fine_amount') && $returnDate->startOfDay()->greaterThan($dueDate)) {
-            $days = (int) $dueDate->diffInDays($returnDate->startOfDay());
-            $fineAmount = $days * Loan::DEFAULT_FINE_PER_DAY;
-        }
-
-        DB::transaction(function () use ($loan, $returnDate, $fineAmount, $request) {
+        DB::transaction(function () use ($loan, $returnDate, $request) {
             $loan->book->increment('available_stock');
             $loan->update([
                 'return_date' => $returnDate->toDateString(),
                 'status' => 'kembali',
-                'fine_amount' => $fineAmount,
                 'librarian_notes' => $request->input('librarian_notes'),
             ]);
         });
 
         $message = "Buku '{$loan->book->title}' berhasil dikembalikan.";
-        if ($fineAmount > 0) {
-            $message .= ' Total denda keterlambatan: Rp '.number_format($fineAmount, 0, ',', '.');
-        }
 
         if ($request->wantsJson()) {
             return response()->json([

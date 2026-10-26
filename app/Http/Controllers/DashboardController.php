@@ -26,7 +26,6 @@ class DashboardController extends Controller
             'pending_loans' => Loan::where('status', 'menunggu_persetujuan')->count(),
             'active_loans' => Loan::whereIn('status', ['dipinjam', 'terlambat'])->count(),
             'overdue_loans' => Loan::overdue()->count(),
-            'total_fines' => (float) Loan::sum('fine_amount'),
         ];
 
         // Recent visits with eager loaded user
@@ -60,9 +59,6 @@ class DashboardController extends Controller
                 ->where('status', 'kembali')
                 ->count(),
             'total_visits' => Visit::where('user_id', $user->id)->count(),
-            'unpaid_fines' => (float) Loan::where('user_id', $user->id)
-                ->where('fine_amount', '>', 0)
-                ->sum('fine_amount'),
         ];
 
         $myActiveLoans = Loan::with('book:id,title,author,isbn,rack_location')
