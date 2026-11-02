@@ -79,16 +79,6 @@
             <div class="text-2xl font-bold text-slate-900 mt-2">{{ $stats['total_visits'] }}</div>
             <div class="text-[11px] text-slate-400 mt-1">Kehadiran di perpustakaan</div>
         </div>
-
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tanggungan Denda</span>
-            <div class="text-2xl font-bold {{ $stats['unpaid_fines'] > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-2">
-                Rp {{ number_format($stats['unpaid_fines'], 0, ',', '.') }}
-            </div>
-            <div class="text-[11px] text-slate-400 mt-1">
-                {{ $stats['unpaid_fines'] > 0 ? 'Harap selesaikan di loket pustakawan' : 'Bebas dari denda keterlambatan' }}
-            </div>
-        </div>
     </div>
 
     <!-- Active Loans Section -->

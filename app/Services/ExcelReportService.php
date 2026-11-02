@@ -173,6 +173,7 @@ class ExcelReportService
                 'startColor' => ['rgb' => 'E2E8F0'],
             ],
         ]);
+        
         $row += 3;
 
         // Footer: Signatures
@@ -270,9 +271,9 @@ class ExcelReportService
         $sheet->getStyle('A6')->getFont()->setSize(10);
         $sheet->getStyle('A6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-        // Table Header
-        $headers = ['No', 'ID Pinjam', 'NIS', 'Nama Peminjam', 'Judul Buku', 'ISBN', 'Tgl Pinjam', 'Jatuh Tempo', 'Tgl Kembali', 'Status', 'Denda (Rp)'];
-        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+        // Table Header (A - J)
+        $headers = ['No', 'ID Pinjam', 'NIS', 'Nama Peminjam', 'Judul Buku', 'ISBN', 'Tgl Pinjam', 'Jatuh Tempo', 'Tgl Kembali', 'Status'];
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
         $row = 8;
 
         foreach ($headers as $index => $header) {
@@ -297,17 +298,15 @@ class ExcelReportService
                 ],
             ],
         ];
-        $sheet->getStyle("A{$row}:K{$row}")->applyFromArray($headerStyle);
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray($headerStyle);
         $sheet->getRowDimension($row)->setRowHeight(24);
 
         // Data Rows
         $row++;
         $no = 1;
         $startDataRow = $row;
-        $totalDenda = 0;
 
         foreach ($loans as $loan) {
-            $totalDenda += (float) $loan->fine_amount;
 
             $sheet->setCellValue("A{$row}", $no);
             $sheet->setCellValue("B{$row}", '#LN-'.str_pad($loan->id, 5, '0', STR_PAD_LEFT));
@@ -319,10 +318,9 @@ class ExcelReportService
             $sheet->setCellValue("H{$row}", Carbon::parse($loan->due_date)->format('d/m/Y'));
             $sheet->setCellValue("I{$row}", $loan->return_date ? Carbon::parse($loan->return_date)->format('d/m/Y') : '-');
             $sheet->setCellValue("J{$row}", strtoupper(str_replace('_', ' ', $loan->status)));
-            $sheet->setCellValue("K{$row}", (float) $loan->fine_amount);
 
             if ($no % 2 === 0) {
-                $sheet->getStyle("A{$row}:K{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+                $sheet->getStyle("A{$row}:J{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
             }
 
             $row++;
@@ -343,31 +341,11 @@ class ExcelReportService
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-        $sheet->getStyle("A{$startDataRow}:K{$endDataRow}")->applyFromArray($dataBorderStyle);
+        $sheet->getStyle("A{$startDataRow}:J{$endDataRow}")->applyFromArray($dataBorderStyle);
         $sheet->getStyle("A{$startDataRow}:C{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("F{$startDataRow}:J{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("K{$startDataRow}:K{$endDataRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 
-        // Summary row
-        $sheet->mergeCells("A{$row}:J{$row}");
-        $sheet->setCellValue("A{$row}", 'TOTAL DENDA TERKUMPUL');
-        $sheet->getStyle("A{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->setCellValue("K{$row}", $totalDenda);
-        $sheet->getStyle("K{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("K{$row}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
-            'borders' => [
-                'allBorders' => [
-                    'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['rgb' => '000000'],
-                ],
-            ],
-            'fill' => [
-                'fillType' => Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'E2E8F0'],
-            ],
-        ]);
+        // Spacing 2 row kosong setelah tabel sebelum tanda tangan
         $row += 3;
 
         // Footer signatures

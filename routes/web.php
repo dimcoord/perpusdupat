@@ -19,10 +19,6 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Self-Service Kiosk Check-In Station (accessible on LAN for Student Client PC)
-Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
-Route::post('/kiosk/check-in', [KioskController::class, 'checkIn'])->name('kiosk.check-in');
-
 // Guest Auth Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -52,6 +48,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/loans/{loan}/approve', [LoanController::class, 'approve'])->name('loans.approve');
         Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook'])->name('loans.return');
         Route::get('/loans/export', [LoanController::class, 'export'])->name('loans.export');
+
+        // Kiosk
+        Route::get('/kiosk', [KioskController::class, 'index'])->name('kiosk.index');
+        Route::post('/kiosk/check-in', [KioskController::class, 'checkIn'])->name('kiosk.check-in');
+
+        // Visits
+        Route::post('/visits', [VisitController::class, 'store'])->name('visits.store');
     });
 
     Route::middleware('role:murid')->group(function () {
@@ -62,7 +65,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/books', [BookController::class, 'index'])->name('books.index');
 
     Route::get('/visits', [VisitController::class, 'index'])->name('visits.index');
-    Route::post('/visits', [VisitController::class, 'store'])->name('visits.store');
 
     Route::get('/loans', [LoanController::class, 'index'])->name('loans.index');
     Route::post('/loans', [LoanController::class, 'store'])->name('loans.store');
