@@ -26,7 +26,6 @@ class ReturnLoanRequest extends FormRequest
     {
         return [
             'return_date' => ['nullable', 'date'],
-            'fine_amount' => ['nullable', 'numeric', 'min:0'],
             'librarian_notes' => ['nullable', 'string', 'max:500'],
         ];
     }
@@ -38,7 +37,6 @@ class ReturnLoanRequest extends FormRequest
     {
         return [
             'return_date' => 'Tanggal Pengembalian',
-            'fine_amount' => 'Jumlah Denda',
             'librarian_notes' => 'Catatan Pustakawan',
         ];
     }

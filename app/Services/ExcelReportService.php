@@ -13,7 +13,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -271,8 +270,8 @@ class ExcelReportService
         $sheet->getStyle('A6')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Table Header
-        $headers = ['No', 'ID Pinjam', 'NIS', 'Nama Peminjam', 'Judul Buku', 'ISBN', 'Tgl Pinjam', 'Jatuh Tempo', 'Tgl Kembali', 'Status', 'Denda (Rp)'];
-        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+        $headers = ['No', 'ID Pinjam', 'NIS', 'Nama Peminjam', 'Judul Buku', 'ISBN', 'Tgl Pinjam', 'Jatuh Tempo', 'Tgl Kembali', 'Status'];
+        $cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
         $row = 8;
 
         foreach ($headers as $index => $header) {
@@ -297,18 +296,15 @@ class ExcelReportService
                 ],
             ],
         ];
-        $sheet->getStyle("A{$row}:K{$row}")->applyFromArray($headerStyle);
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray($headerStyle);
         $sheet->getRowDimension($row)->setRowHeight(24);
 
         // Data Rows
         $row++;
         $no = 1;
         $startDataRow = $row;
-        $totalDenda = 0;
 
         foreach ($loans as $loan) {
-            $totalDenda += (float) $loan->fine_amount;
-
             $sheet->setCellValue("A{$row}", $no);
             $sheet->setCellValue("B{$row}", '#LN-'.str_pad($loan->id, 5, '0', STR_PAD_LEFT));
             $sheet->setCellValueExplicit("C{$row}", (string) ($loan->user?->nis_nip ?? '-'), DataType::TYPE_STRING);
@@ -319,10 +315,9 @@ class ExcelReportService
             $sheet->setCellValue("H{$row}", Carbon::parse($loan->due_date)->format('d/m/Y'));
             $sheet->setCellValue("I{$row}", $loan->return_date ? Carbon::parse($loan->return_date)->format('d/m/Y') : '-');
             $sheet->setCellValue("J{$row}", strtoupper(str_replace('_', ' ', $loan->status)));
-            $sheet->setCellValue("K{$row}", (float) $loan->fine_amount);
 
             if ($no % 2 === 0) {
-                $sheet->getStyle("A{$row}:K{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
+                $sheet->getStyle("A{$row}:J{$row}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F8FAFC');
             }
 
             $row++;
@@ -343,20 +338,19 @@ class ExcelReportService
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-        $sheet->getStyle("A{$startDataRow}:K{$endDataRow}")->applyFromArray($dataBorderStyle);
+        $sheet->getStyle("A{$startDataRow}:J{$endDataRow}")->applyFromArray($dataBorderStyle);
         $sheet->getStyle("A{$startDataRow}:C{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle("F{$startDataRow}:J{$endDataRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle("K{$startDataRow}:K{$endDataRow}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 
         // Summary row
-        $sheet->mergeCells("A{$row}:J{$row}");
-        $sheet->setCellValue("A{$row}", 'TOTAL DENDA TERKUMPUL');
+        $sheet->mergeCells("A{$row}:I{$row}");
+        $sheet->setCellValue("A{$row}", 'TOTAL TRANSAKSI PEMINJAMAN');
         $sheet->getStyle("A{$row}")->getFont()->setBold(true);
         $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-        $sheet->setCellValue("K{$row}", $totalDenda);
-        $sheet->getStyle("K{$row}")->getFont()->setBold(true);
-        $sheet->getStyle("K{$row}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-        $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
+        $sheet->setCellValue("J{$row}", count($loans).' Transaksi');
+        $sheet->getStyle("J{$row}")->getFont()->setBold(true);
+        $sheet->getStyle("J{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -372,21 +366,21 @@ class ExcelReportService
 
         // Footer signatures
         $reportDateStr = Carbon::now()->translatedFormat('d F Y');
-        $sheet->setCellValue("C{$row}", 'Mengetahui,');
-        $sheet->setCellValue("I{$row}", "Ditetapkan di: Sekolah\nPada tanggal: {$reportDateStr}");
+        $sheet->setCellValue("B{$row}", 'Mengetahui,');
+        $sheet->setCellValue("H{$row}", "Ditetapkan di: Sekolah\nPada tanggal: {$reportDateStr}");
         $row++;
-        $sheet->setCellValue("C{$row}", 'Kepala Sekolah,');
-        $sheet->setCellValue("I{$row}", 'Kepala Perpustakaan,');
+        $sheet->setCellValue("B{$row}", 'Kepala Sekolah,');
+        $sheet->setCellValue("H{$row}", 'Kepala Perpustakaan,');
 
         $row += 4;
-        $sheet->setCellValue("C{$row}", '_________________________');
-        $sheet->setCellValue("I{$row}", '_________________________');
+        $sheet->setCellValue("B{$row}", '_________________________');
+        $sheet->setCellValue("H{$row}", '_________________________');
         $row++;
-        $sheet->setCellValue("C{$row}", 'NIP. ....................................');
-        $sheet->setCellValue("I{$row}", 'NIP. ....................................');
+        $sheet->setCellValue("B{$row}", 'NIP. ....................................');
+        $sheet->setCellValue("H{$row}", 'NIP. ....................................');
 
-        $sheet->getStyle('C'.($row - 6).":C{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle('I'.($row - 6).":I{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('B'.($row - 6).":B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('H'.($row - 6).":H{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Auto width
         foreach ($cols as $col) {

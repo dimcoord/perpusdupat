@@ -13,11 +13,6 @@ class Loan extends Model
     use HasFactory;
 
     /**
-     * Default fine per overdue day in IDR.
-     */
-    public const DEFAULT_FINE_PER_DAY = 1000;
-
-    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -29,7 +24,6 @@ class Loan extends Model
         'due_date',
         'return_date',
         'status',
-        'fine_amount',
         'librarian_notes',
     ];
 
@@ -44,7 +38,6 @@ class Loan extends Model
             'loan_date' => 'date',
             'due_date' => 'date',
             'return_date' => 'date',
-            'fine_amount' => 'decimal:2',
         ];
     }
 
@@ -85,9 +78,9 @@ class Loan extends Model
     }
 
     /**
-     * Calculate overdue days and fine amount.
+     * Calculate overdue days.
      */
-    public function calculateFine(int $finePerDay = self::DEFAULT_FINE_PER_DAY): array
+    public function calculateOverdueDays(): int
     {
         $dueDate = Carbon::parse($this->due_date)->startOfDay();
         $comparisonDate = $this->return_date
@@ -95,18 +88,9 @@ class Loan extends Model
             : Carbon::today()->startOfDay();
 
         if ($comparisonDate->greaterThan($dueDate)) {
-            $daysOverdue = (int) $dueDate->diffInDays($comparisonDate);
-            $fine = $daysOverdue * $finePerDay;
-
-            return [
-                'days_overdue' => $daysOverdue,
-                'fine' => $fine,
-            ];
+            return (int) $dueDate->diffInDays($comparisonDate);
         }
 
-        return [
-            'days_overdue' => 0,
-            'fine' => 0,
-        ];
+        return 0;
     }
 }

@@ -249,7 +249,6 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->subDays(2)->toDateString(),
             'due_date' => Carbon::today()->addDays(5)->toDateString(),
             'status' => 'dipinjam',
-            'fine_amount' => 0,
         ]);
 
         // Loan 2: Pending approval by Siti
@@ -259,7 +258,6 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->toDateString(),
             'due_date' => Carbon::today()->addDays(7)->toDateString(),
             'status' => 'menunggu_persetujuan',
-            'fine_amount' => 0,
         ]);
 
         // Loan 3: Overdue by Budi
@@ -269,8 +267,7 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->subDays(12)->toDateString(),
             'due_date' => Carbon::today()->subDays(5)->toDateString(),
             'status' => 'terlambat',
-            'fine_amount' => 5000,
-            'librarian_notes' => 'Terlambat 5 hari (denda Rp 1.000/hari)',
+            'librarian_notes' => 'Terlambat 5 hari dari batas pengembalian',
         ]);
 
         // Output information to console

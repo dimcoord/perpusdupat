@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\Visit;
 use Carbon\Carbon;
@@ -12,21 +14,35 @@ use Illuminate\View\View;
 class KioskController extends Controller
 {
     /**
-     * Show self-service kiosk check-in screen for Student Client PC station.
+     * Show self-service kiosk screen for Student Client PC station.
      */
     public function index(): View
     {
         $today = Carbon::today()->toDateString();
-
-        $todayVisits = Visit::with('user:id,name,nis_nip')
-            ->whereDate('visit_date', $today)
-            ->latest('id')
-            ->take(15)
-            ->get();
-
         $visitCountToday = Visit::whereDate('visit_date', $today)->count();
 
-        return view('kiosk.index', compact('todayVisits', 'visitCountToday'));
+        $availableBooks = Book::with('category:id,name,code')
+            ->available()
+            ->orderBy('title')
+            ->get()
+            ->map(fn (Book $b) => [
+                'id' => $b->id,
+                'title' => $b->title,
+                'author' => $b->author ?? 'Anonim',
+                'publisher' => $b->publisher ?? '-',
+                'publication_year' => $b->publication_year ?? '-',
+                'category_name' => $b->category?->name ?? 'Umum',
+                'category_code' => $b->category?->code ?? '-',
+                'rack_location' => $b->rack_location ?? '-',
+                'total_stock' => $b->total_stock,
+                'available_stock' => $b->available_stock,
+                'isbn' => $b->isbn,
+                'cover_url' => $b->cover_url,
+            ]);
+
+        $categories = Category::has('books')->orderBy('name')->get(['id', 'name', 'code']);
+
+        return view('kiosk.index', compact('availableBooks', 'categories', 'visitCountToday'));
     }
 
     /**
