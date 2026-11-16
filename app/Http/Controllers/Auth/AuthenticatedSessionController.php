@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended(route('librarian.dashboard'));
         }
 
-        return redirect()->route('books.index');
+        return redirect()->intended(route('student.dashboard'));
     }
 
     /**

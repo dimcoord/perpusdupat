@@ -17,12 +17,12 @@
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Tambah Buku Baru</h1>
             <p class="text-xs text-gray-500 mt-1">Daftarkan koleksi buku baru ke dalam katalog perpustakaan.</p>
         </div>
-        <a href="{{ route('books.index') }}" class="btn-press px-3.5 py-2 rounded-lg bg-white hover:bg-[#e1e5e6]/40 text-gray-700 font-medium text-xs border border-[#e1e5e6] shadow-2xs transition active:scale-[0.98] self-start sm:self-auto">
+        <a href="{{ route('books.index') }}" class="btn-press px-3.5 py-2 rounded-lg bg-white hover:bg-[#e2e8f0]/40 text-gray-700 font-medium text-xs border border-[#e2e8f0] shadow-2xs transition active:scale-[0.98] self-start sm:self-auto">
             &larr; Kembali ke Katalog
         </a>
     </div>
 
-    <div class="scroll-reveal delay-1 bg-white rounded-2xl border border-[#e1e5e6] p-6 shadow-xs card-hover">
+    <div class="scroll-reveal delay-1 bg-white rounded-2xl border border-[#e2e8f0] p-6 shadow-xs card-hover">
         <form method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data" class="space-y-6">
             @csrf
 
@@ -30,21 +30,21 @@
                 <!-- Title -->
                 <div class="sm:col-span-2">
                     <label for="title" class="block text-xs font-medium text-gray-700 mb-1.5">Judul Buku <span class="text-rose-500">*</span></label>
-                    <input type="text" name="title" id="title" value="{{ old('title') }}" required placeholder="Masukkan judul lengkap buku..." class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white @error('title') border-rose-400 @enderror">
+                    <input type="text" name="title" id="title" value="{{ old('title') }}" required placeholder="Masukkan judul lengkap buku..." class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white @error('title') border-rose-400 @enderror">
                     @error('title') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- ISBN -->
                 <div>
                     <label for="isbn" class="block text-xs font-medium text-gray-700 mb-1.5">Nomor ISBN <span class="text-rose-500">*</span></label>
-                    <input type="text" name="isbn" id="isbn" value="{{ old('isbn') }}" required placeholder="Contoh: 9786020332956" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs font-mono focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white @error('isbn') border-rose-400 @enderror">
+                    <input type="text" name="isbn" id="isbn" value="{{ old('isbn') }}" required placeholder="Contoh: 9786020332956" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs font-mono focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white @error('isbn') border-rose-400 @enderror">
                     @error('isbn') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Category -->
                 <div>
                     <label for="category_id" class="block text-xs font-medium text-gray-700 mb-1.5">Klasifikasi Kategori (DDC) <span class="text-rose-500">*</span></label>
-                    <select name="category_id" id="category_id" required class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white @error('category_id') border-rose-400 @enderror">
+                    <select name="category_id" id="category_id" required class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white @error('category_id') border-rose-400 @enderror">
                         <option value="">Pilih Kategori...</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" {{ old('category_id') == $category->id ? 'selected' : '' }}>
@@ -58,45 +58,45 @@
                 <!-- Author -->
                 <div>
                     <label for="author" class="block text-xs font-medium text-gray-700 mb-1.5">Nama Penulis / Pengarang</label>
-                    <input type="text" name="author" id="author" value="{{ old('author') }}" placeholder="Contoh: Pramoedya Ananta Toer" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="text" name="author" id="author" value="{{ old('author') }}" placeholder="Contoh: Pramoedya Ananta Toer" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
 
                 <!-- Publisher -->
                 <div>
                     <label for="publisher" class="block text-xs font-medium text-gray-700 mb-1.5">Penerbit</label>
-                    <input type="text" name="publisher" id="publisher" value="{{ old('publisher') }}" placeholder="Contoh: Balai Pustaka / Gramedia" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="text" name="publisher" id="publisher" value="{{ old('publisher') }}" placeholder="Contoh: Balai Pustaka / Gramedia" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
 
                 <!-- Year -->
                 <div>
                     <label for="publication_year" class="block text-xs font-medium text-gray-700 mb-1.5">Tahun Terbit</label>
-                    <input type="number" name="publication_year" id="publication_year" value="{{ old('publication_year', date('Y')) }}" min="1800" max="{{ date('Y') + 1 }}" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="number" name="publication_year" id="publication_year" value="{{ old('publication_year', date('Y')) }}" min="1800" max="{{ date('Y') + 1 }}" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
 
                 <!-- Rack Location -->
                 <div>
                     <label for="rack_location" class="block text-xs font-medium text-gray-700 mb-1.5">Lokasi Rak Simpan</label>
-                    <input type="text" name="rack_location" id="rack_location" value="{{ old('rack_location') }}" placeholder="Contoh: Rak-A2, Lemari-01" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs font-mono focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="text" name="rack_location" id="rack_location" value="{{ old('rack_location') }}" placeholder="Contoh: Rak-A2, Lemari-01" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs font-mono focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
 
                 <!-- Total Stock -->
                 <div>
                     <label for="total_stock" class="block text-xs font-medium text-gray-700 mb-1.5">Jumlah Stok Eksemplar <span class="text-rose-500">*</span></label>
-                    <input type="number" name="total_stock" id="total_stock" value="{{ old('total_stock', 1) }}" min="0" required class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs font-semibold focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white @error('total_stock') border-rose-400 @enderror">
+                    <input type="number" name="total_stock" id="total_stock" value="{{ old('total_stock', 1) }}" min="0" required class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs font-semibold focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white @error('total_stock') border-rose-400 @enderror">
                     @error('total_stock') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Cover Image Upload -->
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-medium text-gray-700 mb-1.5">Sampul Buku (Cover Image)</label>
-                    <div class="flex items-center gap-4 p-4 rounded-xl border border-dashed border-[#e1e5e6] bg-[#e1e5e6]/20">
+                    <div class="flex items-center gap-4 p-4 rounded-xl border border-dashed border-[#e2e8f0] bg-[#e2e8f0]/20">
                         <!-- Preview Box -->
-                        <div class="w-16 h-24 rounded-lg bg-[#e1e5e6]/60 border border-[#e1e5e6] flex items-center justify-center shrink-0 overflow-hidden relative shadow-2xs">
+                        <div class="w-16 h-24 rounded-lg bg-[#e2e8f0]/60 border border-[#e2e8f0] flex items-center justify-center shrink-0 overflow-hidden relative shadow-2xs">
                             <template x-if="coverPreview">
                                 <img :src="coverPreview" alt="Preview Sampul" class="w-full h-full object-cover">
                             </template>
                             <template x-if="!coverPreview">
-                                <div class="text-center p-2 text-[#279b92]">
+                                <div class="text-center p-2 text-[#1a4f8b]">
                                     <svg class="w-6 h-6 mx-auto mb-1 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -112,7 +112,7 @@
                                    id="cover_image"
                                    accept="image/jpeg,image/png,image/jpg,image/webp"
                                    @change="onCoverChange($event)"
-                                   class="block w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#279b92] file:text-white hover:file:bg-[#1f8078] cursor-pointer">
+                                   class="block w-full text-xs text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-[#1a4f8b] file:text-white hover:file:bg-[#153e75] cursor-pointer">
                             <p class="text-[11px] text-gray-400">Format yang didukung: JPG, PNG, WEBP. Maksimal ukuran 2MB.</p>
                             @error('cover_image') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                         </div>
@@ -121,9 +121,9 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center justify-end gap-2 pt-4 border-t border-[#e1e5e6]">
-                <a href="{{ route('books.index') }}" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e1e5e6] hover:bg-[#e1e5e6]/40 transition active:scale-[0.98]">Batal</a>
-                <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+            <div class="flex items-center justify-end gap-2 pt-4 border-t border-[#e2e8f0]">
+                <a href="{{ route('books.index') }}" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0]/40 transition active:scale-[0.98]">Batal</a>
+                <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                     Simpan Buku Baru
                 </button>
             </div>

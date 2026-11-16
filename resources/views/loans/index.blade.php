@@ -24,7 +24,7 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 scroll-reveal">
         <div>
-            <div class="text-xs font-semibold text-[#279b92] tracking-wide mb-1">
+            <div class="text-xs font-semibold text-[#1a4f8b] tracking-wide mb-1">
                 Layanan Sirkulasi & Peminjaman
             </div>
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">
@@ -37,21 +37,21 @@
 
         <div class="flex flex-wrap items-center gap-2">
             @if(auth()->user()->isPustakawan())
-                <button type="button" @click="newLoanModal = true" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                <button type="button" @click="newLoanModal = true" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
                     Catat Peminjaman
                 </button>
 
-                <a href="{{ route('loans.export', ['status' => $status, 'start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-[#e1e5e6]/40 text-gray-700 font-medium text-xs border border-[#e1e5e6] shadow-2xs transition active:scale-[0.98]" title="Cetak laporan sirkulasi ke format Excel">
-                    <svg class="w-4 h-4 text-[#279b92]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('loans.export', ['status' => $status, 'start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-[#e2e8f0]/40 text-gray-700 font-medium text-xs border border-[#e2e8f0] shadow-2xs transition active:scale-[0.98]" title="Cetak laporan sirkulasi ke format Excel">
+                    <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Cetak Lap. Peminjaman
                 </a>
             @else
-                <a href="{{ route('books.index') }}" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                <a href="{{ route('books.index') }}" class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Filters & Status Tabs -->
-    <div class="scroll-reveal delay-1 bg-white p-4.5 rounded-xl border border-[#e1e5e6] space-y-3.5 shadow-xs card-hover">
+    <div class="scroll-reveal delay-1 bg-white p-4.5 rounded-xl border border-[#e2e8f0] space-y-3.5 shadow-xs card-hover">
         <!-- Status Tabs -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
             @php
@@ -77,7 +77,7 @@
 
             @foreach($statusTabs as $val => $label)
                 <a href="{{ route('loans.index', array_merge(request()->query(), ['status' => $val])) }}"
-                   class="btn-press px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 {{ ($status === $val || (empty($status) && empty($val))) ? 'bg-[#279b92] text-white shadow-2xs' : 'bg-[#e1e5e6]/50 text-gray-700 hover:bg-[#e1e5e6]' }}">
+                   class="btn-press px-3.5 py-1.5 rounded-lg font-medium transition shrink-0 {{ ($status === $val || (empty($status) && empty($val))) ? 'bg-[#1a4f8b] text-white shadow-2xs' : 'bg-[#e2e8f0]/50 text-gray-700 hover:bg-[#e2e8f0]' }}">
                     {{ $label }}
                 </a>
             @endforeach
@@ -85,20 +85,20 @@
 
         @if(auth()->user()->isPustakawan())
             <!-- Search & Date Filter Form -->
-            <form method="GET" action="{{ route('loans.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#e1e5e6]">
+            <form method="GET" action="{{ route('loans.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-[#e2e8f0]">
                 <input type="hidden" name="status" value="{{ $status }}">
                 <div class="lg:col-span-2">
-                    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama peminjam, NIS, judul buku, atau ISBN..." class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama peminjam, NIS, judul buku, atau ISBN..." class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
                 <div>
-                    <input type="date" name="start_date" value="{{ $startDate }}" placeholder="Dari tanggal pinjam" class="w-full px-3 py-2 rounded-lg border border-[#e1e5e6] text-xs focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92] outline-none transition bg-white">
+                    <input type="date" name="start_date" value="{{ $startDate }}" placeholder="Dari tanggal pinjam" class="w-full px-3 py-2 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="btn-press w-full py-2 px-3.5 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                    <button type="submit" class="btn-press w-full py-2 px-3.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                         Cari
                     </button>
                     @if($search || $startDate || $endDate)
-                        <a href="{{ route('loans.index') }}" class="p-2 rounded-lg bg-[#e1e5e6]/60 hover:bg-[#e1e5e6] text-gray-700 transition shrink-0" title="Reset">
+                        <a href="{{ route('loans.index') }}" class="p-2 rounded-lg bg-[#e2e8f0]/60 hover:bg-[#e2e8f0] text-gray-700 transition shrink-0" title="Reset">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -110,11 +110,11 @@
     </div>
 
     <!-- Loans Table with Scroll Reveal & Hover -->
-    <div class="scroll-reveal delay-2 bg-white rounded-xl border border-[#e1e5e6] overflow-hidden shadow-xs card-hover">
+    <div class="scroll-reveal delay-2 bg-white rounded-xl border border-[#e2e8f0] overflow-hidden shadow-xs card-hover">
         <!-- Mobile Swipe Helper Indicator -->
-        <div class="md:hidden px-4 py-2 bg-[#f6f8fa] text-[11px] text-gray-500 border-b border-[#e1e5e6] flex items-center justify-between">
+        <div class="md:hidden px-4 py-2 bg-[#f8fafc] text-[11px] text-gray-500 border-b border-[#e2e8f0] flex items-center justify-between">
             <span class="flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5 text-[#279b92]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
                 Geser tabel ke samping untuk melihat detail
@@ -124,7 +124,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full min-w-[760px] text-left text-xs">
-                <thead class="bg-[#e1e5e6]/50 border-b border-[#e1e5e6] text-gray-600 font-semibold uppercase text-[11px] tracking-wider">
+                <thead class="bg-[#e2e8f0]/50 border-b border-[#e2e8f0] text-gray-600 font-semibold uppercase text-[11px] tracking-wider">
                     <tr>
                         <th class="py-3 px-4 w-12 text-center">ID</th>
                         <th class="py-3 px-4">Informasi Buku</th>
@@ -139,28 +139,28 @@
                         @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#e1e5e6]/60">
+                <tbody class="divide-y divide-[#e2e8f0]/60">
                     @forelse($loans as $loan)
                         @php
                             $isOverdue = \Carbon\Carbon::parse($loan->due_date)->isPast() && in_array($loan->status, ['dipinjam', 'terlambat']);
                         @endphp
-                        <tr class="hover:bg-[#279b92]/5 hover:translate-x-0.5 transition-all duration-150 {{ $isOverdue ? 'bg-rose-50/30' : '' }}">
+                        <tr class="hover:bg-[#1a4f8b]/5 hover:translate-x-0.5 transition-all duration-150 {{ $isOverdue ? 'bg-rose-50/30' : '' }}">
                             <td class="py-3.5 px-4 text-center font-mono text-gray-400 font-medium text-[11px]">
                                 #{{ str_pad($loan->id, 4, '0', STR_PAD_LEFT) }}
                             </td>
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-3">
                                     @if($loan->book?->cover_url)
-                                        <img src="{{ $loan->book->cover_url }}" alt="{{ $loan->book->title }}" class="w-9 h-12 rounded object-cover border border-[#e1e5e6] shrink-0 shadow-2xs">
+                                        <img src="{{ $loan->book->cover_url }}" alt="{{ $loan->book->title }}" class="w-9 h-12 rounded object-cover border border-[#e2e8f0] shrink-0 shadow-2xs">
                                     @else
-                                        <div class="w-9 h-12 rounded bg-[#e1e5e6]/60 text-[#279b92] flex items-center justify-center shrink-0 shadow-2xs">
+                                        <div class="w-9 h-12 rounded bg-[#e2e8f0]/60 text-[#1a4f8b] flex items-center justify-center shrink-0 shadow-2xs">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                             </svg>
                                         </div>
                                     @endif
                                     <div>
-                                        <div class="font-semibold text-gray-900 leading-snug hover:text-[#279b92] transition">{{ $loan->book?->title ?? '-' }}</div>
+                                        <div class="font-semibold text-gray-900 leading-snug hover:text-[#1a4f8b] transition">{{ $loan->book?->title ?? '-' }}</div>
                                         <div class="text-[11px] text-gray-400 font-mono mt-0.5">
                                             ISBN: {{ $loan->book?->isbn ?? '-' }} &bull; Rak: {{ $loan->book?->rack_location ?? '-' }}
                                         </div>
@@ -194,7 +194,7 @@
                                         Terlambat
                                     </span>
                                 @elseif($loan->status === 'dipinjam')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#e1e5e6]/60 text-gray-700 border border-[#e1e5e6]">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#e2e8f0]/60 text-gray-700 border border-[#e2e8f0]">
                                         Dipinjam
                                     </span>
                                 @else
@@ -209,12 +209,12 @@
                                         @if($loan->status === 'menunggu_persetujuan')
                                             <form method="POST" action="{{ route('loans.approve', $loan) }}">
                                                 @csrf
-                                                <button type="submit" class="btn-press px-3 py-1 rounded-lg bg-white border border-[#e1e5e6] hover:bg-[#e1e5e6]/40 text-gray-700 text-xs font-semibold transition active:scale-[0.98]">
+                                                <button type="submit" class="btn-press px-3 py-1 rounded-lg bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0]/40 text-gray-700 text-xs font-semibold transition active:scale-[0.98]">
                                                     Setujui
                                                 </button>
                                             </form>
                                         @elseif(in_array($loan->status, ['dipinjam', 'terlambat']))
-                                            <button type="button" @click="openReturnModal({{ json_encode($loan) }})" class="btn-press px-3 py-1 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98]">
+                                            <button type="button" @click="openReturnModal({{ json_encode($loan) }})" class="btn-press px-3 py-1 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98]">
                                                 Kembalikan
                                             </button>
                                         @else
@@ -236,7 +236,7 @@
         </div>
 
         @if($loans->hasPages())
-            <div class="p-4 border-t border-[#e1e5e6]">
+            <div class="p-4 border-t border-[#e2e8f0]">
                 {{ $loans->links() }}
             </div>
         @endif
@@ -245,8 +245,8 @@
     <!-- Librarian New Loan Modal -->
     @if(auth()->user()->isPustakawan())
         <div x-cloak x-show="newLoanModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-            <div @click.outside="newLoanModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#e1e5e6] space-y-4 max-h-[90vh] overflow-y-auto">
-                <div class="flex items-center justify-between border-b border-[#e1e5e6] pb-3">
+            <div @click.outside="newLoanModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#e2e8f0] space-y-4 max-h-[90vh] overflow-y-auto">
+                <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-3">
                     <h3 class="font-bold text-gray-900 text-sm">Catat Transaksi Peminjaman Baru</h3>
                     <button @click="newLoanModal = false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
                 </div>
@@ -255,12 +255,12 @@
                     @csrf
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">NIS Siswa Peminjam <span class="text-rose-500">*</span></label>
-                        <input type="text" name="nis_nip" required placeholder="Masukkan NIS siswa (contoh: 2024101)..." class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]">
+                        <input type="text" name="nis_nip" required placeholder="Masukkan NIS siswa (contoh: 2024101)..." class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">Pilih Buku <span class="text-rose-500">*</span></label>
-                        <select name="book_id" required class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]">
+                        <select name="book_id" required class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]">
                             <option value="">Pilih judul buku...</option>
                             @foreach(\App\Models\Book::available()->orderBy('title')->get() as $b)
                                 <option value="{{ $b->id }}">{{ $b->title }} (Stok: {{ $b->available_stock }})</option>
@@ -271,17 +271,17 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1.5">Tanggal Pinjam</label>
-                            <input type="date" name="loan_date" value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]">
+                            <input type="date" name="loan_date" value="{{ date('Y-m-d') }}" class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1.5">Jatuh Tempo</label>
-                            <input type="date" name="due_date" value="{{ date('Y-m-d', strtotime('+7 days')) }}" class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]">
+                            <input type="date" name="due_date" value="{{ date('Y-m-d', strtotime('+7 days')) }}" class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]">
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#e1e5e6]">
-                        <button type="button" @click="newLoanModal = false" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e1e5e6] hover:bg-[#e1e5e6]/40 transition active:scale-[0.98]">Batal</button>
-                        <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white text-xs font-medium shadow-2xs transition active:scale-[0.98]">Catat Peminjaman</button>
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#e2e8f0]">
+                        <button type="button" @click="newLoanModal = false" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0]/40 transition active:scale-[0.98]">Batal</button>
+                        <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium shadow-2xs transition active:scale-[0.98]">Catat Peminjaman</button>
                     </div>
                 </form>
             </div>
@@ -290,8 +290,8 @@
 
     <!-- Librarian Return Modal -->
     <div x-cloak x-show="returnModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-        <div @click.outside="returnModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#e1e5e6] space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between border-b border-[#e1e5e6] pb-3">
+        <div @click.outside="returnModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#e2e8f0] space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-3">
                 <h3 class="font-bold text-gray-900 text-sm">Proses Pengembalian Buku</h3>
                 <button @click="returnModal = false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
             </div>
@@ -299,7 +299,7 @@
             <template x-if="selectedLoan">
                 <form :action="'/loans/' + selectedLoan.id + '/return'" method="POST" class="space-y-4">
                     @csrf
-                    <div class="bg-[#e1e5e6]/25 p-3.5 rounded-lg border border-[#e1e5e6] text-xs space-y-1">
+                    <div class="bg-[#e2e8f0]/25 p-3.5 rounded-lg border border-[#e2e8f0] text-xs space-y-1">
                         <div><span class="text-gray-500">Judul:</span> <strong class="text-gray-900" x-text="selectedLoan.book ? selectedLoan.book.title : '-'"></strong></div>
                         <div><span class="text-gray-500">Peminjam:</span> <strong class="text-gray-900" x-text="selectedLoan.user ? selectedLoan.user.name : '-'"></strong></div>
                         <div><span class="text-gray-500">Jatuh Tempo:</span> <span class="font-mono text-gray-700" x-text="selectedLoan.due_date"></span></div>
@@ -307,17 +307,17 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">Tanggal Pengembalian</label>
-                        <input type="date" name="return_date" x-model="returnDate" class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]">
+                        <input type="date" name="return_date" x-model="returnDate" class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]">
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1.5">Catatan Pustakawan</label>
-                        <textarea name="librarian_notes" x-model="notes" rows="2" placeholder="Catatan kondisi buku..." class="w-full px-3 py-2 border border-[#e1e5e6] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#279b92] focus:border-[#279b92]"></textarea>
+                        <textarea name="librarian_notes" x-model="notes" rows="2" placeholder="Catatan kondisi buku..." class="w-full px-3 py-2 border border-[#e2e8f0] rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b]"></textarea>
                     </div>
 
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#e1e5e6]">
-                        <button type="button" @click="returnModal = false" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e1e5e6] hover:bg-[#e1e5e6]/40 transition active:scale-[0.98]">Batal</button>
-                        <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#279b92] hover:bg-[#1f8078] text-white text-xs font-medium shadow-2xs transition active:scale-[0.98]">Konfirmasi Selesai</button>
+                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#e2e8f0]">
+                        <button type="button" @click="returnModal = false" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0]/40 transition active:scale-[0.98]">Batal</button>
+                        <button type="submit" class="btn-press px-4 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium shadow-2xs transition active:scale-[0.98]">Konfirmasi Selesai</button>
                     </div>
                 </form>
             </template>
