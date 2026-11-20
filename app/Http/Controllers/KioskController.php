@@ -7,7 +7,10 @@ use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class KioskController extends Controller
@@ -31,88 +34,67 @@ class KioskController extends Controller
     }
 
     /**
-     * Fast AJAX check-in endpoint for kiosk.
-     * Secure AJAX check-in endpoint for kiosk (Anti-Titip Absen via password verification).
+     * Fast AJAX check-in endpoint for kiosk (email + password).
      */
     public function checkIn(Request $request): JsonResponse
     {
-        $request->validate([
-            'nis' => ['required', 'string'],
+        $validated = $request->validate([
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
-            'purpose' => ['required', 'string', 'max:50'],
-        ], [
-            'nis.required' => 'Nomor Induk Siswa (NIS) wajib diisi.',
-            'password.required' => 'Kata sandi wajib diisi untuk verifikasi kehadiran.',
-            'purpose.required' => 'Pilih tujuan kunjungan Anda di perpustakaan.',
+            'purpose' => ['required', Rule::in(['Presensi', 'Pinjam Buku'])],
         ]);
 
-        $nis = trim($request->input('nis'));
-        $password = $request->input('password');
+        $email = Str::lower(trim($validated['email']));
 
-        $user = User::where('nis_nip', $nis)->first();
+        // Batasi percobaan brute force per email + IP kiosk
+        $throttleKey = 'kiosk-checkin|' . $email . '|' . $request->ip();
 
-        if (! $user) {
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
             return response()->json([
                 'success' => false,
-                'message' => "NIS '{$nis}' tidak ditemukan dalam database perpustakaan.",
-                'message' => "Nomor NIS '{$nis}' tidak terdaftar dalam database perpustakaan.",
-            ], 404);
+                'message' => "Terlalu banyak percobaan. Coba lagi dalam {$seconds} detik.",
+            ], 429);
         }
 
-        // Verifikasi kata sandi akun untuk mencegah titip absen
-        if (! Hash::check($password, $user->password)) {
+        // validate() hanya mengecek kredensial, tidak membuat sesi login di PC kiosk
+        if (! Auth::validate(['email' => $email, 'password' => $validated['password']])) {
+            RateLimiter::hit($throttleKey, 60);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Kata sandi salah! Demi mencegah titip absen, presensi wajib dilakukan oleh pemilik akun langsung.',
-            ], 401);
+                'message' => 'Email atau kata sandi salah.',
+            ], 422);
         }
+
+        RateLimiter::clear($throttleKey);
+
+        $user = User::where('email', $email)->firstOrFail();
 
         $today = Carbon::today()->toDateString();
-
-        // Cek apakah siswa sudah presensi hari ini
-        $existingVisitToday = Visit::where('user_id', $user->id)
-            ->whereDate('visit_date', $today)
-            ->latest('id')
-            ->first();
-
-        if ($existingVisitToday) {
-            $existingVisitToday->update([
-                'purpose' => $request->input('purpose'),
-                'notes' => 'Presensi Kiosk Terverifikasi (Update Aktivitas)',
-            ]);
-
-            $todayVisitsCount = Visit::whereDate('visit_date', $today)->count();
-
-            return response()->json([
-                'success' => true,
-                'is_update' => true,
-                'message' => "Halo kembali, {$user->name}! Presensi kehadiran Anda hari ini telah diperbarui.",
-                'data' => [
-                    'id' => $existingVisitToday->id,
-                    'name' => $user->name,
-                    'nis' => $user->nis_nip,
-                    'purpose' => $existingVisitToday->purpose,
-                    'time' => $existingVisitToday->updated_at->format('H:i'),
-                    'total_today' => $todayVisitsCount,
-                ],
-            ]);
-        }
 
         $visit = Visit::create([
             'user_id' => $user->id,
             'visit_date' => $today,
-            'purpose' => $request->input('purpose'),
+            'purpose' => $validated['purpose'],
             'notes' => 'Presensi Mandiri Kiosk LAN',
-            'notes' => 'Presensi Kiosk Terverifikasi (Anti-Titip Absen)',
         ]);
 
         $todayVisitsCount = Visit::whereDate('visit_date', $today)->count();
 
+        // Pinjam Buku: loginkan siswa agar bisa membuka halaman katalog buku
+        $redirect = null;
+        if ($validated['purpose'] === 'Pinjam Buku') {
+            Auth::login($user);
+            $request->session()->regenerate();
+            $redirect = route('books.index');
+        }
+
         return response()->json([
             'success' => true,
             'message' => "Selamat datang, {$user->name}! Presensi berhasil dicatat.",
-            'is_update' => false,
-            'message' => "Presensi Terverifikasi! Selamat datang di perpustakaan, {$user->name}.",
+            'redirect' => $redirect,
             'data' => [
                 'id' => $visit->id,
                 'name' => $user->name,
