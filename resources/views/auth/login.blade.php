@@ -12,22 +12,7 @@
       x-data="{
           mounted: false,
           showPassword: false,
-          activeDemo: '',
-          helpOpen: false,
-          flashHighlight: false,
-          fillCredentials(login, password, role) {
-              $refs.loginInput.value = login;
-              $refs.passwordInput.value = password;
-              this.activeDemo = role;
-              this.flashHighlight = true;
-              
-              if (window.Alpine && window.Alpine.store('toast')) {
-                  window.Alpine.store('toast').notify('Kredensial ' + role + ' terisi!', 'info');
-              }
-              
-              setTimeout(() => { this.flashHighlight = false; }, 800);
-              setTimeout(() => { this.activeDemo = ''; }, 1600);
-          }
+          helpOpen: false
       }"
       x-init="setTimeout(() => mounted = true, 50)">
 
@@ -144,8 +129,7 @@
                         <label for="login" class="block text-xs font-semibold text-slate-700 mb-1">
                             NIS / NIP / Email
                         </label>
-                        <div class="relative input-interactive rounded-xl group"
-                             :class="flashHighlight ? 'ring-2 ring-blue-500/50 bg-blue-50/30' : ''">
+                        <div class="relative input-interactive rounded-xl group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#1a4f8b] group-focus-within:scale-110 transition-all duration-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -180,8 +164,7 @@
                                 Butuh bantuan?
                             </button>
                         </div>
-                        <div class="relative input-interactive rounded-xl group"
-                             :class="flashHighlight ? 'ring-2 ring-blue-500/50 bg-blue-50/30' : ''">
+                        <div class="relative input-interactive rounded-xl group">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#1a4f8b] group-focus-within:scale-110 transition-all duration-200">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -243,37 +226,6 @@
                         </svg>
                     </button>
                 </form>
-
-                <!-- Quick Demo Login Presets with Interactive Micro-Animations -->
-                <div class="mt-4 pt-3.5 border-t border-slate-100">
-                    <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block mb-2">
-                        Akun Uji Coba:
-                    </span>
-
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button"
-                                @click="fillCredentials('admin', 'password', 'Pustakawan')"
-                                :class="activeDemo === 'Pustakawan' ? 'border-[#1a4f8b] ring-2 ring-[#1a4f8b]/30 bg-blue-50/70 scale-[1.02]' : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-[#1a4f8b]/40'"
-                                class="p-2 rounded-xl border text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-900 group-hover:text-[#1a4f8b] transition-colors leading-tight">Pustakawan</span>
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all"></span>
-                            </div>
-                            <span class="text-[10px] text-slate-500 font-mono">admin</span>
-                        </button>
-
-                        <button type="button"
-                                @click="fillCredentials('2024101', 'password', 'Siswa')"
-                                :class="activeDemo === 'Siswa' ? 'border-[#1a4f8b] ring-2 ring-[#1a4f8b]/30 bg-blue-50/70 scale-[1.02]' : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-[#1a4f8b]/40'"
-                                class="p-2 rounded-xl border text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:scale-95 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-900 group-hover:text-[#1a4f8b] transition-colors leading-tight">Siswa (Ahmad)</span>
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 opacity-60 group-hover:opacity-100 group-hover:scale-125 transition-all"></span>
-                            </div>
-                            <span class="text-[10px] text-slate-500 font-mono">2024101</span>
-                        </button>
-                    </div>
-                </div>
             </div>
 
             <!-- Bottom Kiosk Station Shortcut Link with Hover Slide Effect -->
