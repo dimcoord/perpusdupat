@@ -237,7 +237,23 @@
                             </form>
                         @else
                             @if($book->available_stock > 0)
-                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press px-3.5 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                                <button type="button" 
+                                        @click="$store.cart.add({{ json_encode($book) }})" 
+                                        :class="$store.cart.has({{ $book->id }}) ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white hover:bg-blue-50 text-slate-700 border-slate-200'"
+                                        class="btn-press p-1.5 rounded-lg border font-medium text-xs transition shadow-2xs" 
+                                        title="Tambah ke Keranjang Pinjam">
+                                    <template x-if="!$store.cart.has({{ $book->id }})">
+                                        <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                        </svg>
+                                    </template>
+                                    <template x-if="$store.cart.has({{ $book->id }})">
+                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </template>
+                                </button>
+                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press px-3 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                                     Detail & Pinjam
                                 </button>
                             @else
@@ -557,6 +573,17 @@
                                     <span>Edit Buku</span>
                                 </a>
                             @else
+                                <template x-if="selectedBook.available_stock > 0">
+                                    <button type="button" 
+                                            @click="$store.cart.add(selectedBook)" 
+                                            class="btn-press px-3.5 py-1.5 rounded-lg bg-white border border-[#1a4f8b] text-[#1a4f8b] hover:bg-blue-50 font-medium text-xs transition flex items-center gap-1.5 shadow-2xs active:scale-95">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                        </svg>
+                                        <span x-text="$store.cart.has(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
+                                    </button>
+                                </template>
+
                                 <template x-if="selectedBook.available_stock > 0">
                                     <button type="button" 
                                             @click="submitLoan()" 

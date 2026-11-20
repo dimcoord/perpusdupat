@@ -399,15 +399,27 @@
                     </div>
 
                     <!-- Action Button -->
-                    <div class="p-3 pt-0">
+                    <div class="p-3 pt-0 flex items-center gap-1.5" @click.stop>
                         <button type="button" 
-                                @click.stop="openBookDetail({{ json_encode($book) }})" 
-                                class="w-full py-1.5 px-3 rounded-xl bg-slate-50 hover:bg-[#1a4f8b] text-slate-700 hover:text-white border border-slate-200 hover:border-[#1a4f8b] font-medium text-xs transition-all flex items-center justify-center gap-1.5 text-center active:scale-95 shadow-2xs">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            <span>Detail & Pinjam</span>
+                                @click="$store.cart.add({{ json_encode($book) }})" 
+                                :class="$store.cart.has({{ $book->id }}) ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'"
+                                class="btn-press p-1.5 rounded-xl border font-medium text-xs transition shadow-2xs shrink-0" 
+                                title="Tambah ke Keranjang Pinjam">
+                            <template x-if="!$store.cart.has({{ $book->id }})">
+                                <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                            </template>
+                            <template x-if="$store.cart.has({{ $book->id }})">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </template>
+                        </button>
+                        <button type="button" 
+                                @click="openBookDetail({{ json_encode($book) }})" 
+                                class="flex-1 py-1.5 px-2.5 rounded-xl bg-slate-50 hover:bg-[#1a4f8b] text-slate-700 hover:text-white border border-slate-200 hover:border-[#1a4f8b] font-medium text-xs transition-all flex items-center justify-center gap-1 text-center active:scale-95 shadow-2xs truncate">
+                            <span>Detail</span>
                         </button>
                     </div>
                 </div>
@@ -748,6 +760,17 @@
                         </button>
 
                         <div class="flex items-center gap-2">
+                            <template x-if="selectedBook.available_stock > 0">
+                                <button type="button" 
+                                        @click="$store.cart.add(selectedBook)" 
+                                        class="btn-press px-3.5 py-1.5 rounded-lg bg-white border border-[#1a4f8b] text-[#1a4f8b] hover:bg-blue-50 font-medium text-xs transition flex items-center gap-1.5 shadow-2xs active:scale-95">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                    <span x-text="$store.cart.has(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
+                                </button>
+                            </template>
+
                             <template x-if="selectedBook.available_stock > 0">
                                 <button type="button" 
                                         @click="submitLoanFromDetail()" 

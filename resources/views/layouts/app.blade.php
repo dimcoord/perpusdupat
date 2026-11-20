@@ -90,7 +90,25 @@
                 </div>
 
                 <!-- Right Actions: User Menu & Mobile Toggle -->
-                <div class="flex items-center gap-3 sm:gap-6">
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <!-- Keranjang Pinjam Buku Button -->
+                    <button type="button" 
+                            @click="$store.cart.open()" 
+                            class="relative p-2 rounded-xl text-blue-100 hover:text-white hover:bg-white/10 transition focus:outline-none flex items-center gap-1.5 group active:scale-95"
+                            title="Buka Keranjang Pinjam Buku">
+                        <div class="relative flex items-center justify-center">
+                            <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <template x-if="$store.cart.count > 0">
+                                <span class="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse font-mono leading-none"
+                                      x-text="$store.cart.count">
+                                </span>
+                            </template>
+                        </div>
+                        <span class="hidden sm:inline text-xs font-semibold tracking-wide">Keranjang</span>
+                    </button>
+
                     <!-- User Menu Dropdown -->
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" @click.outside="open = false" class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-white/10 transition focus:outline-none">
@@ -231,6 +249,18 @@
                     </svg>
                     <span>Riwayat Kunjungan</span>
                 </a>
+
+                <button type="button" 
+                        @click="mobileNav = false; $store.cart.open()" 
+                        class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-blue-100/90 hover:bg-white/10 hover:text-white">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 shrink-0 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        <span>Keranjang Pinjam</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold text-xs" x-text="$store.cart.count"></span>
+                </button>
             @endif
 
             @if(auth()->user()->isPustakawan())
@@ -390,6 +420,221 @@
             </a>
         @endif
     </nav>
+
+    <!-- Slide-over Drawer: Keranjang Pinjam Buku -->
+    <div x-cloak 
+         x-show="$store.cart.isOpen" 
+         class="fixed inset-0 z-50 overflow-hidden" 
+         @keydown.escape.window="$store.cart.close()">
+        <!-- Backdrop -->
+        <div x-show="$store.cart.isOpen"
+             x-transition:enter="ease-in-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in-out duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="$store.cart.close()"
+             class="absolute inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"></div>
+
+        <div class="fixed inset-y-0 right-0 max-w-full flex pl-8 sm:pl-10">
+            <div x-show="$store.cart.isOpen"
+                 x-transition:enter="transform transition ease-in-out duration-300"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transform transition ease-in-out duration-300"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full"
+                 class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+                
+                <!-- Drawer Header -->
+                <div class="px-5 py-4 bg-gradient-to-r from-[#102a54] to-[#1a4f8b] text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-bold leading-tight">Keranjang Pinjam Buku</h2>
+                            <p class="text-[11px] text-blue-200/90">Pilih & ajukan beberapa buku sekaligus</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-0.5 rounded-full bg-white/15 text-white font-mono text-[10px] font-semibold"
+                              x-text="$store.cart.count + ' / ' + $store.cart.maxItems + ' Buku'">
+                        </span>
+                        <button type="button" 
+                                @click="$store.cart.close()" 
+                                class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition active:scale-95 leading-none"
+                                title="Tutup">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Drawer Content -->
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+                    <!-- Empty State -->
+                    <template x-if="$store.cart.items.length === 0">
+                        <div class="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 my-auto">
+                            <div class="w-16 h-16 rounded-2xl bg-blue-50 text-[#1a4f8b] flex items-center justify-center mb-3">
+                                <svg class="w-8 h-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-sm font-bold text-slate-800">Keranjang Masih Kosong</h3>
+                            <p class="text-xs text-slate-400 mt-1 max-w-xs leading-relaxed">
+                                Jelajahi katalog buku dan klik tombol keranjang pada buku yang ingin Anda pinjam.
+                            </p>
+                            <a href="{{ route('books.index') }}" 
+                               @click="$store.cart.close()" 
+                               class="btn-press btn-sheen mt-5 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1a4f8b] hover:bg-[#153e75] text-white font-semibold text-xs shadow-sm transition active:scale-95">
+                                <span>Buka Katalog Buku</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </a>
+                        </div>
+                    </template>
+
+                    <!-- Non-Empty List -->
+                    <template x-if="$store.cart.items.length > 0">
+                        <div class="space-y-4">
+                            <!-- Items List -->
+                            <div class="space-y-2.5">
+                                <div class="flex items-center justify-between text-xs text-slate-500 pb-1 border-b border-slate-100">
+                                    <span class="font-semibold text-slate-700">Daftar Buku (<span x-text="$store.cart.count"></span>)</span>
+                                    <button type="button" 
+                                            @click="$store.cart.clear()" 
+                                            class="text-rose-600 hover:text-rose-700 hover:underline text-[11px] font-medium transition">
+                                        Kosongkan Semua
+                                    </button>
+                                </div>
+
+                                <template x-for="(item, index) in $store.cart.items" :key="item.id">
+                                    <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-blue-300 transition">
+                                        <!-- Thumbnail -->
+                                        <div class="relative shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-slate-200 border border-slate-300">
+                                            <template x-if="item.cover_url">
+                                                <img :src="item.cover_url" :alt="item.title" class="w-full h-full object-cover">
+                                            </template>
+                                            <template x-if="!item.cover_url">
+                                                <div class="w-full h-full bg-gradient-to-br from-[#102a54] to-[#1a4f8b] flex items-center justify-center text-white">
+                                                    <span class="text-[9px] font-mono text-amber-300" x-text="item.category_code || '000'"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        <!-- Info -->
+                                        <div class="flex-1 min-w-0">
+                                            <span class="text-[9px] font-semibold text-[#1a4f8b] uppercase tracking-wide block truncate" x-text="item.category_name || 'Koleksi Umum'"></span>
+                                            <h4 class="text-xs font-bold text-slate-900 leading-tight line-clamp-1" x-text="item.title"></h4>
+                                            <p class="text-[11px] text-slate-500 truncate" x-text="item.author"></p>
+                                            <div class="flex items-center gap-2 mt-1 text-[10px] text-slate-400 font-mono">
+                                                <span>Rak: <strong class="text-slate-700" x-text="item.rack_location"></strong></span>
+                                                <span>•</span>
+                                                <span class="text-emerald-700 font-sans font-medium">Tersedia</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Remove Button -->
+                                        <button type="button" 
+                                                @click="$store.cart.remove(item.id)" 
+                                                class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition active:scale-95 shrink-0"
+                                                title="Hapus dari keranjang">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Rules & Terms -->
+                            <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1 text-xs">
+                                <div class="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Ketentuan Peminjaman Koleksi</span>
+                                </div>
+                                <ul class="text-[10px] text-amber-950/80 space-y-0.5 list-disc list-inside leading-relaxed">
+                                    <li>Batas ambil buku fisik <strong>maksimal 2 hari sekolah</strong> di loket.</li>
+                                    <li>Masa pinjam <strong>7 hari</strong> per transaksi, bebas denda.</li>
+                                    <li>Maksimal <strong>3 buku</strong> per siswa dalam satu sesi peminjaman.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Checkbox Konfirmasi -->
+                            <div x-data="{ confirmedBatch: false, isSubmitting: false, isSuccessBanner: false }">
+                                <label class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer select-none hover:bg-blue-50/40 transition">
+                                    <input type="checkbox" x-model="confirmedBatch" class="mt-0.5 w-3.5 h-3.5 rounded text-[#1a4f8b] border-slate-300 focus:ring-[#1a4f8b]">
+                                    <span class="text-slate-700 text-[10px] leading-relaxed">
+                                        Saya bersedia mengambil seluruh buku fisik di loket sirkulasi perpustakaan tepat waktu.
+                                    </span>
+                                </label>
+
+                                <!-- Success Simulation Banner -->
+                                <template x-if="isSuccessBanner">
+                                    <div class="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-1">
+                                        <div class="font-bold flex items-center gap-1.5">
+                                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <span>Pengajuan Keranjang Berhasil Disimulasikan!</span>
+                                        </div>
+                                        <p class="text-[11px] text-emerald-700 leading-relaxed">
+                                            UI Keranjang sudah siap. Begitu endpoint backend selesai dibuat oleh tim, tombol ini langsung dapat mengirim seluruh ID buku: <code class="bg-white/80 px-1 py-0.5 rounded font-mono text-[10px]" x-text="JSON.stringify($store.cart.items.map(b => b.id))"></code>
+                                        </p>
+                                    </div>
+                                </template>
+
+                                <!-- Submit Button -->
+                                <div class="mt-3">
+                                    <button type="button" 
+                                            @click="
+                                                if (!confirmedBatch) return;
+                                                isSubmitting = true;
+                                                setTimeout(() => {
+                                                    isSubmitting = false;
+                                                    isSuccessBanner = true;
+                                                    if (Alpine.store('toast')) {
+                                                        Alpine.store('toast').notify('Simulasi Checkout: ' + $store.cart.count + ' buku siap diajukan!', 'success');
+                                                    }
+                                                    setTimeout(() => {
+                                                        $store.cart.clear();
+                                                        isSuccessBanner = false;
+                                                        $store.cart.close();
+                                                    }, 3000);
+                                                }, 800);
+                                            "
+                                            :disabled="!confirmedBatch || isSubmitting"
+                                            :class="(!confirmedBatch || isSubmitting) ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-[#1a4f8b] hover:bg-[#102a54] active:scale-[0.98]'"
+                                            class="btn-sheen w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                                        <span x-show="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                        <span x-show="!isSubmitting">Ajukan Pinjam Sekaligus (<span x-text="$store.cart.count"></span> Buku)</span>
+                                        <span x-show="isSubmitting">Memproses Pengajuan...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Drawer Footer -->
+                <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 shrink-0">
+                    <span class="text-[11px]">Sistem Sirkulasi SMAN 24</span>
+                    <button type="button" 
+                            @click="$store.cart.close()" 
+                            class="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs transition active:scale-95">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>
