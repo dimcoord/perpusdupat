@@ -121,6 +121,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2005,
                 'category_id' => $categories['800']->id,
                 'rack_location' => 'Rak-A1',
+                'sinopsis' => 'Kisah perjuangan pemuda pribumi bernama Minke di era kolonial Hindia Belanda yang menolak tunduk pada ketidakadilan bangsa penjajah.',
                 'total_stock' => 5,
                 'available_stock' => 4,
                 'cover_image' => $this->generateCoverSvg('cover_bumi_manusia.svg', 'Bumi Manusia', 'Pramoedya Ananta Toer', '800', '#78350f', '#451a03'),
@@ -133,6 +134,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2005,
                 'category_id' => $categories['800']->id,
                 'rack_location' => 'Rak-A2',
+                'sinopsis' => 'Perjuangan sepuluh anak di Belitung dalam menuntut ilmu di tengah keterbatasan fasilitas sekolah Laskar Pelangi.',
                 'total_stock' => 6,
                 'available_stock' => 5,
                 'cover_image' => $this->generateCoverSvg('cover_laskar_pelangi.svg', 'Laskar Pelangi', 'Andrea Hirata', '800', '#1e1b4b', '#0891b2'),
@@ -145,6 +147,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2008,
                 'category_id' => $categories['800']->id,
                 'rack_location' => 'Rak-A3',
+                'sinopsis' => 'Kisah cinta religius seorang mahasiswa Indonesia di Al-Azhar Kairo yang diuji oleh berbagai cobaan hidup, moral, dan keyakinan.',
                 'total_stock' => 4,
                 'available_stock' => 4,
                 'cover_image' => $this->generateCoverSvg('cover_ayat_ayat_cinta.svg', 'Ayat-Ayat Cinta', 'Habiburrahman El Shirazy', '800', '#064e3b', '#0d9488'),
@@ -157,6 +160,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2016,
                 'category_id' => $categories['000']->id,
                 'rack_location' => 'Rak-B1',
+                'sinopsis' => 'Panduan komprehensif konsep dasar logika pemrograman, struktur data, dan implementasi algoritma untuk pemula.',
                 'total_stock' => 8,
                 'available_stock' => 7,
                 'cover_image' => $this->generateCoverSvg('cover_algoritma.svg', 'Pengantar Algoritma', 'Rinaldi Munir', '000', '#0f172a', '#0284c7'),
@@ -169,6 +173,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2018,
                 'category_id' => $categories['500']->id,
                 'rack_location' => 'Rak-C1',
+                'sinopsis' => 'Buku teks standar fisika mekanika, termodinamika, dan gelombang yang menjadi rujukan ilmu rekayasa dan sains.',
                 'total_stock' => 5,
                 'available_stock' => 5,
                 'cover_image' => $this->generateCoverSvg('cover_fisika.svg', 'Fisika Dasar Sains', 'Halliday & Resnick', '500', '#3b0764', '#7c3aed'),
@@ -181,6 +186,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2017,
                 'category_id' => $categories['300']->id,
                 'rack_location' => 'Rak-D2',
+                'sinopsis' => 'Dasar-dasar pencatatan transaksi keuangan, penyusunan neraca saldo, dan laporan laba rugi perusahaan jasa dan dagang.',
                 'total_stock' => 3,
                 'available_stock' => 3,
                 'cover_image' => $this->generateCoverSvg('cover_akuntansi.svg', 'Pengantar Akuntansi', 'Warren & Reeve', '300', '#172554', '#2563eb'),
@@ -193,6 +199,7 @@ class DatabaseSeeder extends Seeder
                 'publication_year' => 2009,
                 'category_id' => $categories['800']->id,
                 'rack_location' => 'Rak-A4',
+                'sinopsis' => 'Kisah santri di Pondok Madani dengan filosofi Man Jadda Wajada yang bertekad menaklukkan impian hingga ke ujung dunia.',
                 'total_stock' => 4,
                 'available_stock' => 4,
                 'cover_image' => $this->generateCoverSvg('cover_negeri_5_menara.svg', 'Negeri 5 Menara', 'Ahmad Fuadi', '800', '#14532d', '#16a34a'),
@@ -213,7 +220,13 @@ class DatabaseSeeder extends Seeder
 
         $createdBooks = [];
         foreach ($booksData as $b) {
-            $createdBooks[] = Book::firstOrCreate(['isbn' => $b['isbn']], $b);
+            $book = Book::where('isbn', $b['isbn'])->first();
+            if ($book) {
+                $book->update($b);
+                $createdBooks[] = $book;
+            } else {
+                $createdBooks[] = Book::create($b);
+            }
         }
 
         // 6. Initial Visits
@@ -249,7 +262,6 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->subDays(2)->toDateString(),
             'due_date' => Carbon::today()->addDays(5)->toDateString(),
             'status' => 'dipinjam',
-            'fine_amount' => 0,
         ]);
 
         // Loan 2: Pending approval by Siti
@@ -259,7 +271,6 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->toDateString(),
             'due_date' => Carbon::today()->addDays(7)->toDateString(),
             'status' => 'menunggu_persetujuan',
-            'fine_amount' => 0,
         ]);
 
         // Loan 3: Overdue by Budi
@@ -269,8 +280,7 @@ class DatabaseSeeder extends Seeder
             'loan_date' => Carbon::today()->subDays(12)->toDateString(),
             'due_date' => Carbon::today()->subDays(5)->toDateString(),
             'status' => 'terlambat',
-            'fine_amount' => 5000,
-            'librarian_notes' => 'Terlambat 5 hari (denda Rp 1.000/hari)',
+            'librarian_notes' => 'Terlambat 5 hari',
         ]);
 
         // Output information to console

@@ -220,6 +220,9 @@
                                     {{ $spotlightBook->title }}
                                 </h3>
                                 <p class="text-[11px] sm:text-xs text-blue-100/75 truncate">Oleh: {{ $spotlightBook->author ?? 'Penulis' }}</p>
+                                @if($spotlightBook->sinopsis)
+                                    <p class="text-[11px] text-blue-100/80 line-clamp-2 italic leading-relaxed">{{ $spotlightBook->sinopsis }}</p>
+                                @endif
                                 <div class="flex items-center gap-2 pt-0.5 text-xs">
                                     <span class="inline-flex items-center gap-1.5 text-emerald-300 font-semibold text-[10px] sm:text-[11px]">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -394,6 +397,11 @@
                             <p class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 sm:mt-1 line-clamp-1">
                                 {{ $book->author ?? 'Anonim' }}
                             </p>
+                            @if($book->sinopsis)
+                                <p class="text-[10px] text-slate-500 mt-1.5 line-clamp-2 italic leading-snug" title="{{ $book->sinopsis }}">
+                                    {{ $book->sinopsis }}
+                                </p>
+                            @endif
                         </div>
                     </div>
 
