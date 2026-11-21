@@ -11,7 +11,15 @@
     selectedBook: null,
     isSubmittingLoan: false,
     confirmedTerms: false,
-    
+
+    cartIds: {{ \Illuminate\Support\Js::from(array_map('intval', array_values(session('loan_cart', [])))) }},
+    cartMax: {{ \App\Http\Controllers\CartController::MAX_ITEMS }},
+    busyId: null,
+
+    inCart(id) {
+        return this.cartIds.includes(id);
+    },
+
     openBookDetail(book) {
         if (!book) return;
         this.selectedBook = book;
@@ -26,6 +34,40 @@
         this.loanModal = true;
     },
 
+    async cartRequest(book, method) {
+        if (this.busyId) return;
+        this.busyId = book.id;
+
+        try {
+            const res = await fetch('{{ url('cart/books') }}/' + book.id, {
+                method: method,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                if (method === 'POST') {
+                    if (!this.inCart(book.id)) this.cartIds.push(book.id);
+                } else {
+                    this.cartIds = this.cartIds.filter(i => i !== book.id);
+                }
+                Alpine.store('toast').notify(data.message, 'success');
+            } else {
+                Alpine.store('toast').notify(data.message || 'Gagal memperbarui keranjang', 'error');
+            }
+        } catch (e) {
+            Alpine.store('toast').notify('Terjadi kesalahan jaringan LAN', 'error');
+        } finally {
+            this.busyId = null;
+        }
+    },
+
+    addToCart(book) { return this.cartRequest(book, 'POST'); },
+    removeFromCart(book) { return this.cartRequest(book, 'DELETE'); },
+
     submitLoan() {
         if (!this.selectedBook) return;
         this.isSubmittingLoan = true;
@@ -39,7 +81,7 @@
                 'X-Alpine-Request': 'true'
             },
             body: JSON.stringify({
-                book_id: this.selectedBook.id
+                book_ids: [this.selectedBook.id]
             })
         })
         .then(res => res.json())
@@ -49,7 +91,13 @@
                 Alpine.store('toast').notify(data.message, 'success');
                 this.loanModal = false;
                 this.detailModal = false;
-                setTimeout(() => window.location.reload(), 1200);
+                setTimeout(() => {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.href = '{{ route('loans.index') }}';
+                    }
+                }, 1000);
             } else {
                 Alpine.store('toast').notify(data.message || 'Gagal mengajukan pinjaman', 'error');
             }
@@ -91,6 +139,14 @@
                     Unduh Template
                 </a>
             </div>
+        @else
+            <a href="{{ route('cart.index') }}" class="btn-press inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Keranjang Pinjam
+                <span x-text="cartIds.length + '/' + cartMax" class="px-1.5 py-0.5 rounded-md bg-white/20 font-mono text-[10px]"></span>
+            </a>
         @endif
     </div>
 
@@ -126,18 +182,20 @@
                 </select>
             </div>
 
-            <!-- Availability & Filter Button -->
+            <!-- Availability Filter & Submit Button -->
             <div class="flex items-center gap-2">
                 <select name="availability" class="w-full px-3 py-2.5 rounded-lg border border-[#e2e8f0] text-xs focus:ring-1 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] outline-none transition bg-white">
-                    <option value="">Semua Status Stok</option>
-                    <option value="available" {{ $availability === 'available' ? 'selected' : '' }}>Tersedia Saja</option>
-                    <option value="out_of_stock" {{ $availability === 'out_of_stock' ? 'selected' : '' }}>Stok Habis</option>
+                    <option value="">Semua Ketersediaan</option>
+                    <option value="available" {{ $availability == 'available' ? 'selected' : '' }}>Buku Tersedia</option>
+                    <option value="out_of_stock" {{ $availability == 'out_of_stock' ? 'selected' : '' }}>Stok Habis</option>
                 </select>
-                <button type="submit" class="btn-press px-4 py-2.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition shrink-0 active:scale-[0.98]">
-                    Cari
+
+                <button type="submit" class="btn-press px-4 py-2.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs shrink-0 active:scale-[0.98]">
+                    Filter
                 </button>
+
                 @if($search || $categoryId || $availability)
-                    <a href="{{ route('books.index') }}" class="p-2.5 rounded-lg bg-[#e2e8f0]/60 hover:bg-[#e2e8f0] text-gray-700 text-xs font-medium transition shrink-0" title="Reset Filter">
+                    <a href="{{ route('books.index') }}" class="p-2.5 rounded-lg bg-[#e2e8f0]/60 hover:bg-[#e2e8f0] text-gray-700 transition shrink-0" title="Reset Filter">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -147,56 +205,51 @@
         </form>
     </div>
 
-    <!-- Books Card Grid with Staggered Scroll-Reveal & Hover Lift -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
+    <!-- Book Grid List -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         @forelse($books as $book)
-            <div @click="openBookDetail({{ json_encode($book) }})" 
-                 class="scroll-reveal delay-{{ ($loop->index % 4) + 1 }} bg-white rounded-xl border border-[#e2e8f0] flex flex-col justify-between overflow-hidden card-hover shadow-xs group cursor-pointer hover:border-[#1a4f8b]/50 hover:shadow-md transition-all">
-                <!-- Book Cover Header with Spine Effect -->
-                <div class="h-40 sm:h-48 w-full bg-[#e2e8f0]/30 overflow-hidden relative border-b border-[#e2e8f0] before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:bg-gradient-to-r before:from-black/25 before:to-transparent before:z-10">
-                    @if($book->cover_url)
-                        <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                    @else
-                        <div class="w-full h-full flex flex-col items-center justify-center p-3 sm:p-4 text-[#1a4f8b] relative">
-                            <svg class="w-8 sm:w-10 h-8 sm:h-10 mb-1 opacity-70 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            <span class="text-[9px] sm:text-[10px] text-gray-500 font-mono text-center uppercase tracking-wider">{{ $book->category?->code ?? 'DDC' }}</span>
+            <div class="scroll-reveal delay-{{ ($loop->index % 4) + 1 }} bg-white rounded-xl border border-[#e2e8f0] overflow-hidden flex flex-col justify-between shadow-xs card-hover group cursor-pointer"
+                 @click="openBookDetail({{ json_encode($book) }})">
+                <!-- Top Section: Visual Cover + Meta Info -->
+                <div class="p-3.5 sm:p-4">
+                    <div class="flex gap-3 sm:gap-3.5">
+                        <!-- Book Cover with Fallback -->
+                        <div class="relative shrink-0 w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden shadow-xs border border-[#e2e8f0] bg-gray-50">
+                            @if($book->cover_url)
+                                <img src="{{ $book->cover_url }}"
+                                     alt="Sampul {{ $book->title }}"
+                                     loading="lazy"
+                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            @else
+                                <div class="w-full h-full bg-[#102a54] text-white flex flex-col items-center justify-center p-1 text-center group-hover:bg-[#1a4f8b] transition duration-300">
+                                    <span class="text-[8px] font-mono text-amber-300 font-bold uppercase tracking-wider">DUPAT</span>
+                                    <svg class="w-5 h-5 text-blue-200 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                            @endif
+                            <div class="absolute top-1 left-1">
+                                <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#102a54]/80 text-white backdrop-blur-xs">
+                                    {{ $book->category?->code ?? 'GEN' }}
+                                </span>
+                            </div>
                         </div>
-                    @endif
-                    <span class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-[#1a4f8b] text-white font-medium shadow-xs z-10">
-                        {{ $book->rack_location ?: 'Rak -' }}
-                    </span>
-                </div>
 
-                <div class="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
-                    <!-- Top Category & Year -->
-                    <div class="flex items-center justify-between gap-1 sm:gap-2">
-                        <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-[#e2e8f0]/70 text-gray-700 truncate max-w-[110px] sm:max-w-none">
-                            {{ $book->category?->code ?? '000' }} &bull; {{ $book->category?->name ?? 'Umum' }}
-                        </span>
-                        <span class="text-[9px] sm:text-[10px] text-gray-400 font-mono shrink-0">{{ $book->publication_year ?: '-' }}</span>
-                    </div>
-
-                    <!-- Book Title & Author -->
-                    <div>
-                        <h3 class="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 leading-tight sm:leading-snug group-hover:text-[#1a4f8b] transition-colors duration-150" title="{{ $book->title }}">
-                            {{ $book->title }}
-                        </h3>
-                        <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 line-clamp-1">
-                            {{ $book->author ?: 'Anonim' }}
-                        </p>
-                    </div>
-
-                    <!-- Details: ISBN & Publisher -->
-                    <div class="pt-1.5 sm:pt-2 border-t border-[#e2e8f0]/60 space-y-0.5 sm:space-y-1 text-[10px] sm:text-[11px] text-gray-500">
-                        <div class="flex items-center justify-between">
-                            <span>ISBN:</span>
-                            <span class="font-mono text-gray-700 truncate max-w-[100px] sm:max-w-none">{{ $book->isbn }}</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span>Penerbit:</span>
-                            <span class="text-gray-700 truncate max-w-[90px] sm:max-w-[120px]">{{ $book->publisher ?: '-' }}</span>
+                        <!-- Book Metadata -->
+                        <div class="flex-1 min-w-0 space-y-1">
+                            <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider block truncate">
+                                {{ $book->category?->name ?? 'Umum' }}
+                            </span>
+                            <h3 class="font-bold text-xs sm:text-sm text-gray-900 leading-snug line-clamp-2 group-hover:text-[#1a4f8b] transition">
+                                {{ $book->title }}
+                            </h3>
+                            <p class="text-xs text-gray-600 truncate">
+                                {{ $book->author }}
+                            </p>
+                            <div class="pt-1 text-[11px] text-gray-500 space-y-0.5">
+                                <div class="truncate">Rak: <span class="font-semibold text-gray-800">{{ $book->rack_location }}</span></div>
+                                <div class="font-mono text-[10px] text-gray-400">ISBN: {{ $book->isbn }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,21 +290,26 @@
                             </form>
                         @else
                             @if($book->available_stock > 0)
-                                <button type="button" 
-                                        @click="$store.cart.add({{ json_encode($book) }})" 
-                                        :class="$store.cart.has({{ $book->id }}) ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-white hover:bg-blue-50 text-slate-700 border-slate-200'"
-                                        class="btn-press p-1.5 rounded-lg border font-medium text-xs transition shadow-2xs" 
+                                <button type="button"
+                                        x-show="!inCart({{ $book->id }})"
+                                        @click="addToCart({ id: {{ $book->id }} })"
+                                        :disabled="busyId === {{ $book->id }}"
+                                        class="btn-press p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-blue-50 text-slate-700 font-medium text-xs transition shadow-2xs"
                                         title="Tambah ke Keranjang Pinjam">
-                                    <template x-if="!$store.cart.has({{ $book->id }})">
-                                        <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                        </svg>
-                                    </template>
-                                    <template x-if="$store.cart.has({{ $book->id }})">
-                                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </template>
+                                    <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                    </svg>
+                                </button>
+                                <button type="button"
+                                        x-cloak
+                                        x-show="inCart({{ $book->id }})"
+                                        @click="removeFromCart({ id: {{ $book->id }} })"
+                                        :disabled="busyId === {{ $book->id }}"
+                                        class="btn-press p-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 font-medium text-xs transition shadow-2xs"
+                                        title="Sudah di keranjang. Klik untuk membatalkan">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
                                 </button>
                                 <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                                     Detail & Pinjam
@@ -320,230 +378,89 @@
         </div>
     </div>
 
-    <!-- Student Loan Request Modal -->
-    <div x-cloak x-show="loanModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-        <div @click.outside="loanModal = false" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-[#e2e8f0] space-y-4">
-            <div class="flex items-center justify-between border-b border-[#e2e8f0] pb-3">
-                <h3 class="font-bold text-gray-900 text-sm">Konfirmasi Pengajuan Peminjaman</h3>
-                <button @click="loanModal = false" class="text-gray-400 hover:text-gray-600 text-lg leading-none">&times;</button>
-            </div>
-
-            <template x-if="selectedBook">
-                <div class="space-y-4">
-                    <div class="flex items-start gap-3 bg-[#e2e8f0]/25 p-3.5 rounded-lg border border-[#e2e8f0]">
-                        <template x-if="selectedBook.cover_url">
-                            <img :src="selectedBook.cover_url" alt="Cover" class="w-14 h-20 object-cover rounded border border-[#e2e8f0] shrink-0 shadow-2xs">
-                        </template>
-                        <template x-if="!selectedBook.cover_url">
-                            <div class="w-14 h-20 rounded bg-[#e2e8f0]/60 text-[#1a4f8b] flex items-center justify-center shrink-0 shadow-2xs">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                            </div>
-                        </template>
-                        <div class="space-y-1 text-xs">
-                            <div class="font-bold text-gray-900 line-clamp-2" x-text="selectedBook.title"></div>
-                            <div class="text-gray-500">Penulis: <span class="text-gray-700" x-text="selectedBook.author || 'Anonim'"></span></div>
-                            <div class="text-gray-500">ISBN: <span class="font-mono text-gray-700" x-text="selectedBook.isbn"></span></div>
-                            <div class="text-gray-500">Lokasi: <span class="font-medium text-gray-900 font-mono" x-text="selectedBook.rack_location || '-'"></span></div>
-                        </div>
-                    </div>
-
-                    <div class="p-3.5 bg-gray-50 rounded-xl border border-[#e2e8f0] space-y-2 text-xs">
-                        <div class="flex items-start gap-2">
-                            <span class="text-amber-600 font-bold shrink-0">⏳</span>
-                            <div class="text-gray-600 text-[11px] leading-relaxed">
-                                <strong class="text-gray-900 font-semibold">Batas Pengambilan:</strong> Maksimal <span class="font-bold text-amber-700">2 hari sekolah</span> di loket perpustakaan. Pengajuan otomatis kedaluwarsa jika buku tidak diambil.
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-2 pt-2 border-t border-[#e2e8f0]">
-                            <span class="text-[#1a4f8b] font-bold shrink-0">📅</span>
-                            <div class="text-gray-600 text-[11px] leading-relaxed">
-                                <strong class="text-gray-900 font-semibold">Masa Pinjam:</strong> Standar <strong>7 hari</strong>, baru mulai terhitung resmi saat buku fisik diserahkan oleh pustakawan di loket.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Checkbox Konfirmasi Siswa -->
-                    <label class="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 cursor-pointer text-xs select-none hover:bg-amber-50 transition">
-                        <input type="checkbox" x-model="confirmedTerms" class="mt-0.5 w-4 h-4 rounded text-[#1a4f8b] border-gray-300 focus:ring-[#1a4f8b] transition">
-                        <span class="text-amber-950 text-[11px] leading-relaxed">
-                            Saya yakin ingin meminjam dan siap mengambil buku fisik di loket perpustakaan dalam batas waktu <strong>maksimal 2 hari</strong>.
-                        </span>
-                    </label>
-
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#e2e8f0]">
-                        <button type="button" @click="loanModal = false" class="px-3.5 py-2 rounded-lg text-xs font-medium text-gray-700 bg-white border border-[#e2e8f0] hover:bg-[#e2e8f0]/40 transition active:scale-[0.98]">Batal</button>
-                        <button type="button" @click="submitLoan()" :disabled="!confirmedTerms || isSubmittingLoan" :class="(!confirmedTerms || isSubmittingLoan) ? 'opacity-50 cursor-not-allowed' : 'active:scale-[0.98]'" class="btn-press px-4 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs">
-                            <span x-show="isSubmittingLoan" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span>Ajukan Sekarang</span>
-                        </button>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </div>
-
-    <!-- Book Detail Modal (Pop up Informasi Buku Kompak & Tidak Full Layar) -->
-    <div x-cloak 
-         x-show="detailModal" 
+    <!-- Student Book Detail & Action Modal (Compact & Minimalist) -->
+    <div x-cloak x-show="detailModal" 
+         class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         @keydown.escape.window="detailModal = false"
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6">
-        
+         x-transition:leave-end="opacity-0">
         <div @click.outside="detailModal = false" 
-             x-show="detailModal"
-             x-transition:enter="transition ease-out duration-250"
-             x-transition:enter-start="opacity-0 translate-y-3 sm:scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
-             class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[82vh]">
-            
+             class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
             <template x-if="selectedBook">
-                <div class="flex flex-col h-full overflow-hidden">
+                <div class="flex flex-col h-full">
                     <!-- Modal Header (Compact) -->
-                    <div class="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-[#102a54] to-[#1a4f8b] text-white flex items-center justify-between shrink-0">
+                    <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 shrink-0">
                         <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                            <span class="text-xs font-semibold tracking-wide text-blue-100 uppercase">Detail Informasi Buku</span>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#1a4f8b] text-white" x-text="selectedBook.category?.code || 'Buku'"></span>
+                            <span class="text-xs font-semibold text-slate-800 truncate" x-text="selectedBook.category?.name || 'Katalog'"></span>
                         </div>
-                        <button type="button" 
-                                @click="detailModal = false" 
-                                class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition active:scale-95 text-base leading-none"
-                                title="Tutup (Esc)">
-                            &times;
+                        <button type="button" @click="detailModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-200/60 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
 
-                    <!-- Modal Body (Compact Scrollable) -->
-                    <div class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 flex-1 text-slate-800">
-                        
-                        <!-- Top Split: Cover and Book Identity -->
-                        <div class="flex gap-3 sm:gap-4 items-start">
-                            <!-- Compact Book Cover -->
-                            <div class="relative shrink-0 w-20 sm:w-26 aspect-[3/4.2] rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
+                    <!-- Modal Body (Scrollable, Tight Padding) -->
+                    <div class="p-4 overflow-y-auto space-y-3.5 text-xs">
+                        <div class="flex gap-3.5 items-start">
+                            <!-- Cover Thumbnail -->
+                            <div class="w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden border border-slate-200 bg-slate-100 shrink-0 shadow-xs">
                                 <template x-if="selectedBook.cover_url">
-                                    <img :src="selectedBook.cover_url" 
-                                         :alt="selectedBook.title" 
-                                         class="w-full h-full object-cover">
+                                    <img :src="selectedBook.cover_url" :alt="selectedBook.title" class="w-full h-full object-cover">
                                 </template>
                                 <template x-if="!selectedBook.cover_url">
-                                    <div class="w-full h-full bg-gradient-to-br from-[#102a54] via-[#1a4f8b] to-[#153e75] p-2.5 flex flex-col justify-between text-white">
-                                        <div class="text-[9px] font-mono text-amber-300 font-bold uppercase tracking-wider" x-text="selectedBook.category ? selectedBook.category.code : 'DUPAT'"></div>
-                                        <div class="font-bold text-[11px] line-clamp-3 leading-tight" x-text="selectedBook.title"></div>
-                                        <div class="text-[8px] text-blue-300/80 font-mono">SMAN 24</div>
+                                    <div class="w-full h-full bg-[#102a54] text-white flex flex-col items-center justify-center p-1 text-center">
+                                        <span class="text-[8px] font-mono text-amber-300 font-bold">DUPAT</span>
+                                        <svg class="w-4 h-4 text-blue-200 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                        </svg>
                                     </div>
                                 </template>
-                                <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/35 to-transparent pointer-events-none"></div>
                             </div>
 
-                            <!-- Title, Category, Author, Publisher, Year -->
-                            <div class="space-y-1.5 flex-1 min-w-0 text-left">
-                                <div class="flex flex-wrap items-center gap-1.5">
-                                    <span class="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-[#1a4f8b] font-bold text-[10px] uppercase tracking-wide truncate max-w-[170px]"
-                                          x-text="selectedBook.category ? (selectedBook.category.code + ' • ' + selectedBook.category.name) : 'Koleksi Umum'">
-                                    </span>
-                                    
-                                    <template x-if="selectedBook.available_stock > 0">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-[10px]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                            <span>Tersedia (<span x-text="selectedBook.available_stock"></span>)</span>
-                                        </span>
-                                    </template>
-                                    <template x-if="selectedBook.available_stock <= 0">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 text-rose-700 font-bold text-[10px]">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                            <span>Habis</span>
-                                        </span>
-                                    </template>
-                                </div>
-
-                                <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2" x-text="selectedBook.title"></h2>
-
-                                <div class="space-y-1 text-xs text-slate-600 pt-0.5">
-                                    <div class="flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-[#1a4f8b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                        <span class="truncate">Penulis: <strong class="text-slate-900 font-semibold" x-text="selectedBook.author || 'Anonim'"></strong></span>
-                                    </div>
-
-                                    <div class="flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-[#1a4f8b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                        </svg>
-                                        <span class="truncate">Penerbit: <strong class="text-slate-900 font-semibold" x-text="selectedBook.publisher || '-'"></strong></span>
-                                    </div>
-
-                                    <div class="flex items-center gap-1.5">
-                                        <svg class="w-3.5 h-3.5 text-[#1a4f8b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>Tahun: <strong class="text-slate-900 font-semibold" x-text="selectedBook.publication_year || '-'"></strong></span>
-                                    </div>
-                                </div>
+                            <!-- Title & Essential Specs -->
+                            <div class="flex-1 min-w-0 space-y-1">
+                                <h2 class="font-bold text-sm sm:text-base text-slate-900 leading-snug line-clamp-2" x-text="selectedBook.title"></h2>
+                                <div class="text-slate-600 text-[11px]">Penulis: <span class="font-medium text-slate-800" x-text="selectedBook.author"></span></div>
+                                <div class="text-slate-500 text-[11px]">Penerbit: <span class="text-slate-700" x-text="selectedBook.publisher || '-'"></span> (<span x-text="selectedBook.publication_year || '-'"></span>)</div>
+                                <div class="text-slate-500 font-mono text-[10px]">ISBN: <span x-text="selectedBook.isbn"></span></div>
                             </div>
                         </div>
 
-                        <!-- 4-Box Technical Data Grid (Compact) -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-100">
-                            <!-- 1. ISBN -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                                <span class="text-[9px] text-slate-500 font-semibold block uppercase tracking-wider">ISBN</span>
-                                <div class="font-mono font-bold text-xs text-slate-900 mt-0.5 truncate" x-text="selectedBook.isbn"></div>
+                        <!-- Location & Inventory Badge Grid -->
+                        <div class="grid grid-cols-2 gap-2 text-[11px]">
+                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="text-slate-400 text-[10px]">Lokasi Rak</div>
+                                <div class="font-bold text-[#1a4f8b] mt-0.5" x-text="selectedBook.rack_location || '-'"></div>
                             </div>
-
-                            <!-- 2. Lokasi Rak -->
-                            <div class="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100">
-                                <span class="text-[9px] text-[#1a4f8b] font-semibold block uppercase tracking-wider">Lokasi Rak</span>
-                                <div class="font-bold text-xs text-slate-900 mt-0.5 font-mono truncate" x-text="selectedBook.rack_location || '-'"></div>
-                            </div>
-
-                            <!-- 3. Stok Buku -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                                <span class="text-[9px] text-slate-500 font-semibold block uppercase tracking-wider">Stok</span>
-                                <div class="font-bold text-xs text-slate-900 mt-0.5">
-                                    <span class="text-emerald-700" x-text="selectedBook.available_stock"></span>/<span x-text="selectedBook.total_stock"></span> eks
-                                </div>
-                            </div>
-
-                            <!-- 4. Klasifikasi DDC -->
-                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-                                <span class="text-[9px] text-slate-500 font-semibold block uppercase tracking-wider">Kode DDC</span>
-                                <div class="font-mono font-bold text-xs text-[#1a4f8b] mt-0.5 truncate" x-text="selectedBook.category ? selectedBook.category.code : '-'"></div>
+                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+                                <div class="text-slate-400 text-[10px]">Status Stok</div>
+                                <div class="font-bold mt-0.5" 
+                                     :class="selectedBook.available_stock > 0 ? 'text-emerald-700' : 'text-rose-600'" 
+                                     x-text="selectedBook.available_stock > 0 ? 'Tersedia ' + selectedBook.available_stock + ' / ' + selectedBook.total_stock + ' buku' : 'Stok Habis'"></div>
                             </div>
                         </div>
 
-                        <!-- Slot Sinopsis / Deskripsi (Otomatis tampil jika tersedia) -->
-                        <template x-if="selectedBook.description || selectedBook.synopsis">
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                                <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Sinopsis / Ringkasan Buku</span>
-                                <p class="text-xs text-slate-600 leading-relaxed max-h-24 overflow-y-auto" x-text="selectedBook.description || selectedBook.synopsis"></p>
-                            </div>
-                        </template>
-
+                        <!-- Loan Terms & Limit Note -->
                         @if(!auth()->user()->isPustakawan())
-                            <!-- Lending Policy (Compact Alert) -->
-                            <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1 text-xs">
-                                <div class="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
-                                    <svg class="w-3.5 h-3.5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="p-3 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] text-slate-700 space-y-1">
+                                <div class="font-bold text-[#1a4f8b] flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#1a4f8b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span>Ketentuan Peminjaman SMAN 24</span>
+                                    <span>Ketentuan Peminjaman Mandiri:</span>
                                 </div>
-                                <div class="text-[10px] text-amber-950/80 leading-relaxed">
-                                    Batas ambil buku fisik <strong>maksimal 2 hari sekolah</strong> di loket. Masa pinjam standar <strong>7 hari</strong> bebas denda.
-                                </div>
+                                <ul class="list-disc list-inside text-slate-600 text-[10px] space-y-0.5 pl-1">
+                                    <li>Maksimal <strong>2 buku</strong> aktif per siswa.</li>
+                                    <li>Durasi pinjam standar: <strong>7 hari</strong> sejak disetujui pustakawan.</li>
+                                    <li>Buku wajib diambil di meja sirkulasi maksimal <strong>2 hari</strong> setelah diajukan.</li>
+                                </ul>
                             </div>
 
-                            <!-- Checkbox Confirmation for Loan -->
                             <template x-if="selectedBook.available_stock > 0">
                                 <label class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer select-none hover:bg-blue-50/50 transition">
                                     <input type="checkbox" x-model="confirmedTerms" class="mt-0.5 w-3.5 h-3.5 rounded text-[#1a4f8b] border-slate-300 focus:ring-[#1a4f8b]">
@@ -555,7 +472,7 @@
                         @endif
                     </div>
 
-                    <!-- Modal Actions Footer (Compact) -->
+                    <!-- Modal Actions Footer -->
                     <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
                         <button type="button" 
                                 @click="detailModal = false" 
@@ -575,12 +492,12 @@
                             @else
                                 <template x-if="selectedBook.available_stock > 0">
                                     <button type="button" 
-                                            @click="$store.cart.add(selectedBook)" 
+                                            @click="addToCart(selectedBook)" 
                                             class="btn-press px-3.5 py-1.5 rounded-lg bg-white border border-[#1a4f8b] text-[#1a4f8b] hover:bg-blue-50 font-medium text-xs transition flex items-center gap-1.5 shadow-2xs active:scale-95">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                         </svg>
-                                        <span x-text="$store.cart.has(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
+                                        <span x-text="inCart(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
                                     </button>
                                 </template>
 
@@ -609,5 +526,19 @@
             </template>
         </div>
     </div>
+
+    @if(! auth()->user()->isPustakawan())
+        <!-- Floating Cart Button -->
+        <a href="{{ route('cart.index') }}"
+           x-cloak
+           x-show="cartIds.length > 0"
+           x-transition
+           class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#102a54] hover:bg-[#1a4f8b] text-white text-xs font-semibold shadow-xl transition active:scale-95 border border-white/20">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Lihat Keranjang (<span x-text="cartIds.length"></span>)
+        </a>
+    @endif
 </div>
 @endsection

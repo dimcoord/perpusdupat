@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Loan;
 use App\Models\Visit;
 use Carbon\Carbon;
@@ -80,7 +81,7 @@ class DashboardController extends Controller
             ->get();
 
         // Kategori Utama Koleksi Perpustakaan
-        $categories = \App\Models\Category::withCount('books')
+        $categories = Category::withCount('books')
             ->orderByDesc('books_count')
             ->take(8)
             ->get();

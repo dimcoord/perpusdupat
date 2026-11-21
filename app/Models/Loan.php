@@ -30,6 +30,7 @@ class Loan extends Model
         'return_date',
         'status',
         'librarian_notes',
+        'loan_receipt_id',
     ];
 
     /**
@@ -44,6 +45,27 @@ class Loan extends Model
             'due_date' => 'date',
             'return_date' => 'date',
         ];
+    }
+
+    /**
+     * Bootstrap model events.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Loan $loan) {
+            if (! $loan->loan_receipt_id && $loan->user_id) {
+                $receipt = LoanReceipt::create([
+                    'user_id' => $loan->user_id,
+                    'loan_date' => $loan->loan_date ?? now()->toDateString(),
+                    'due_date' => $loan->due_date ?? now()->addDays(7)->toDateString(),
+                    'status' => $loan->status === 'menunggu_persetujuan'
+                        ? LoanReceipt::STATUS_PENDING
+                        : ($loan->status === 'kembali' ? LoanReceipt::STATUS_RETURNED : LoanReceipt::STATUS_APPROVED),
+                ]);
+                $receipt->update(['receipt_number' => LoanReceipt::numberFor($receipt)]);
+                $loan->loan_receipt_id = $receipt->id;
+            }
+        });
     }
 
     /**
@@ -106,5 +128,10 @@ class Loan extends Model
             'days_overdue' => 0,
             'fine' => 0,
         ];
+    }
+
+    public function receipt(): BelongsTo
+    {
+        return $this->belongsTo(LoanReceipt::class, 'loan_receipt_id');
     }
 }

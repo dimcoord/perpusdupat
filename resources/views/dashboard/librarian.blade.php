@@ -184,11 +184,39 @@
                 </a>
             </div>
 
-            <div class="divide-y divide-[#e2e8f0]/60 max-h-[380px] overflow-y-auto">
-                @forelse($recentLoans as $loan)
+            <div class="divide-y divide-[#e2e8f0]/60 max-h-[460px] overflow-y-auto">
+                @php
+                    // Loans of one receipt are shown (approved and returned) as one row
+                    $loanRows = $recentLoans->groupBy(fn ($l) => $l->loan_receipt_id ? 'r'.$l->loan_receipt_id : 'l'.$l->id);
+                @endphp
+
+                @forelse($loanRows as $rowLoans)
                     @php
-                        $dueDate = \Carbon\Carbon::parse($loan->due_date);
-                        $isOverdue = $dueDate->isPast() && in_array($loan->status, ['dipinjam', 'terlambat']);
+                        $loan = $rowLoans->first();
+                        $receipt = $loan->loan_receipt_id ? $loan->receipt : null;
+                        $receiptBooks = $receipt ? $receipt->loans->load('book') : collect();
+                        $isBundle = $receipt && $receiptBooks->count() > 1;
+
+                        if ($receipt) {
+                            $rowStatus = $receipt->isPending()
+                                ? 'menunggu_persetujuan'
+                                : ($receiptBooks->whereIn('status', ['dipinjam', 'terlambat'])->isNotEmpty() ? 'dipinjam' : 'kembali');
+                            $rowDue = $receipt->due_date;
+                        } else {
+                            $rowStatus = $loan->status;
+                            $rowDue = $loan->due_date;
+                        }
+
+                        $returnPayload = [
+                            'action' => $receipt ? route('loan-receipts.return', $receipt) : url('/loans/'.$loan->id.'/return'),
+                            'due_date' => \Carbon\Carbon::parse($rowDue)->toDateString(),
+                            'user' => ['name' => $loan->user?->name],
+                            'book' => ['title' => $isBundle
+                                ? $receiptBooks->count().' buku: '.$receiptBooks->pluck('book.title')->join(', ')
+                                : $loan->book?->title],
+                        ];
+                        $dueDate = \Carbon\Carbon::parse($rowDue);
+                        $isOverdue = $dueDate->isPast() && in_array($rowStatus, ['dipinjam', 'terlambat']);
                     @endphp
                     <div class="py-3 flex items-center justify-between gap-3 hover:bg-[#1a4f8b]/5 hover:translate-x-0.5 transition-all duration-150 px-2 rounded-lg">
                         <div class="flex items-center gap-3 min-w-0">
@@ -201,28 +229,50 @@
 
                             <div class="space-y-0.5 min-w-0">
                                 <div class="text-xs font-bold text-gray-900 leading-snug truncate hover:text-[#1a4f8b] transition">
-                                    {{ $loan->book?->title ?? 'Buku' }}
+                                    @if($isBundle)
+                                        {{ $receiptBooks->count() }} buku
+                                        <span class="font-mono font-normal text-[10px] text-gray-400">&middot; {{ $receipt->receipt_number }}</span>
+                                    @else
+                                        {{ $loan->book?->title ?? '-' }}
+                                    @endif
                                 </div>
+                                @if($isBundle)
+                                    <div class="text-[11px] text-gray-500 truncate" title="{{ $receiptBooks->pluck('book.title')->join(', ') }}">
+                                        {{ $receiptBooks->pluck('book.title')->join(', ') }}
+                                    </div>
+                                @endif
                                 <div class="text-[11px] text-gray-500 truncate">
                                     Peminjam: <strong class="text-gray-700">{{ $loan->user?->name ?? '-' }}</strong> ({{ $loan->user?->nis_nip ?? '-' }})
                                 </div>
-                                <div class="text-[11px] text-gray-400 font-mono">
-                                    Pinjam: {{ $loan->created_at->format('d/m/Y') }} &bull; Tempo: <span class="{{ $isOverdue ? 'text-rose-600 font-semibold' : 'text-gray-600' }}">{{ $dueDate->format('d/m/Y') }}</span>
+                                <div class="text-[11px] text-gray-400 font-mono flex flex-wrap items-center gap-1.5 pt-0.5">
+                                    <span>Pinjam: {{ \Carbon\Carbon::parse($loan->loan_date ?? $loan->created_at)->format('d/m/Y') }}</span>
+                                    <span>&bull;</span>
+                                    <span>Tempo: <span class="{{ $isOverdue ? 'text-rose-600 font-semibold' : 'text-gray-600' }}">{{ $dueDate->format('d/m/Y') }}</span></span>
+
+                                    @if($rowStatus === 'menunggu_persetujuan')
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            Menunggu
+                                        </span>
+                                    @elseif($isOverdue)
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                            Terlambat
+                                        </span>
+                                    @endif
                                 </div>
                             </div>
                         </div>
 
-                        <div class="shrink-0">
-                            @if($loan->status === 'menunggu_persetujuan')
-                                <form method="POST" action="{{ route('loans.approve', $loan) }}">
+                        <div class="flex items-center gap-2 shrink-0">
+                            @if($rowStatus === 'menunggu_persetujuan')
+                                <form method="POST" action="{{ $receipt ? route('loan-receipts.approve', $receipt) : route('loans.approve', $loan) }}">
                                     @csrf
                                     <button type="submit" class="btn-press px-3.5 py-1.5 rounded-lg bg-white hover:bg-[#e2e8f0]/40 text-gray-800 text-xs font-semibold border border-[#e2e8f0] transition shadow-2xs">
-                                        Setujui
+                                        {{ $isBundle ? 'Setujui Semua' : 'Setujui' }}
                                     </button>
                                 </form>
-                            @elseif(in_array($loan->status, ['dipinjam', 'terlambat']))
-                                <button type="button" @click="openReturnModal({{ json_encode($loan) }})" class="btn-press px-3.5 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs">
-                                    Kembalikan
+                            @elseif(in_array($rowStatus, ['dipinjam', 'terlambat']))
+                                <button type="button" @click="openReturnModal({{ json_encode($returnPayload) }})" class="btn-press px-3.5 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs">
+                                    {{ $isBundle ? 'Kembalikan Semua' : 'Kembalikan' }}
                                 </button>
                             @else
                                 <span class="px-2.5 py-1 rounded text-[10px] font-medium bg-[#e2e8f0]/60 text-gray-600">
@@ -253,7 +303,7 @@
             </div>
 
             <template x-if="selectedLoan">
-                <form :action="'/loans/' + selectedLoan.id + '/return'" method="POST" class="space-y-4">
+                <form :action="selectedLoan.action" method="POST" class="space-y-4">
                     @csrf
                     <div class="bg-[#e2e8f0]/25 p-3 rounded-lg border border-[#e2e8f0] text-xs space-y-1.5">
                         <div class="flex items-start justify-between gap-2">

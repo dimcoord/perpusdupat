@@ -13,7 +13,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -173,7 +172,7 @@ class ExcelReportService
                 'startColor' => ['rgb' => 'E2E8F0'],
             ],
         ]);
-        
+
         $row += 3;
 
         // Footer: Signatures
