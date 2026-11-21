@@ -89,36 +89,13 @@
         <!-- RIGHT COLUMN: Authentication Form -->
         <div class="lg:col-span-7 p-6 sm:p-8 lg:p-9 flex flex-col justify-between bg-white overflow-hidden">
             <div>
-                <!-- Brand Header -->
-                <div class="flex items-center gap-2.5 mb-5">
-                    <div class="w-8 h-8 rounded-xl bg-[#1a4f8b] text-white flex items-center justify-center shadow-xs transition-transform duration-300 hover:rotate-6 hover:scale-105">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="block text-sm font-bold text-slate-900 tracking-tight leading-none">Perpus Dupat</span>
-                        <span class="text-[10px] text-slate-500 font-medium">SMA Negeri 24 Bandung</span>
-                    </div>
-                </div>
-
                 <!-- Form Heading -->
-                <div class="mb-4">
+                <div class="mb-5">
                     <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Selamat Datang Kembali!</h2>
                     <p class="text-xs text-slate-500 mt-1">
                         Silakan masukkan kredensial perpustakaan Anda untuk masuk.
                     </p>
                 </div>
-
-                <!-- Session Flash Message -->
-                @if(session('success'))
-                    <div class="mb-3.5 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 text-xs border border-emerald-200 flex items-center gap-2 animate-float">
-                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>{{ session('success') }}</span>
-                    </div>
-                @endif
 
                 <!-- Login Form -->
                 <form method="POST" action="{{ route('login') }}" class="space-y-3.5">
