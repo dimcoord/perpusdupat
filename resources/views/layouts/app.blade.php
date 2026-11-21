@@ -18,15 +18,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Left: Brand & Desktop Nav Links -->
-                <div class="flex items-center">
+                <div class="flex items-center min-w-0">
                     <!-- Brand & Logo with SMAN 24 Seal -->
-                    <a href="{{ url('/') }}" class="flex items-center gap-3 group shrink-0">
+                    <a href="{{ url('/') }}" class="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
                         <img src="{{ asset('images/logo-sman24.jpg') }}" 
                              alt="Logo SMAN 24" 
-                             class="w-9 h-9 rounded-full object-contain bg-white p-0.5 shadow-sm ring-1 ring-white/30 group-hover:scale-105 transition-transform duration-200 shrink-0">
-                        <div>
-                            <div class="font-bold text-sm tracking-wide text-white leading-tight">PERPUS DUPAT</div>
-                            <div class="text-[11px] text-blue-200/90 font-normal leading-tight mt-0.5">SMA Negeri 24 Bandung</div>
+                             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-contain bg-white p-0.5 shadow-sm ring-1 ring-white/30 group-hover:scale-105 transition-transform duration-200 shrink-0">
+                        <div class="min-w-0">
+                            <div class="font-bold text-xs sm:text-sm tracking-wide text-white leading-tight truncate">PERPUS DUPAT</div>
+                            <div class="text-[10px] sm:text-[11px] text-blue-200/90 font-normal leading-tight mt-0.5 truncate">SMA Negeri 24 Bandung</div>
                         </div>
                     </a>
 
@@ -277,7 +277,7 @@
     </header>
 
     <!-- Main Content Container (Mobile pb-24 for bottom bar clearance) -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 sm:pb-24 md:pb-6">
         <!-- Flash Messages -->
         @if(session('success'))
             <div class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800 flex items-start gap-3 shadow-2xs">
@@ -346,7 +346,6 @@
     <footer class="border-t border-slate-200 bg-white py-3.5 mb-16 md:mb-0 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
             <div>Sistem Perpustakaan Digital - SMA NEGERI 24 BANDUNG</div>
-            <div>Server AMD A4 Low-Memory Optimized</div>
         </div>
     </footer>
 

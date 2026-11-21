@@ -101,65 +101,124 @@
         </div>
     @endif
 
+    @if(!auth()->user()->isPustakawan())
+        <!-- Student Visit Summary Stats Tiles -->
+        @php
+            $todayVisit = $visits->first(fn($v) => \Carbon\Carbon::parse($v->visit_date)->isToday());
+            $latestVisit = $visits->first();
+        @endphp
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 scroll-reveal delay-1">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-blue-50 text-[#1a4f8b] flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[11px] text-slate-500 font-medium block">Total Kunjungan Saya</span>
+                    <span class="text-xl font-bold text-slate-900 leading-none mt-0.5 block">{{ $visits->total() }} <span class="text-xs font-normal text-slate-500">kali</span></span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[11px] text-slate-500 font-medium block">Kunjungan Terakhir</span>
+                    <span class="text-xs font-bold text-slate-900 leading-snug mt-0.5 block">
+                        {{ $latestVisit ? \Carbon\Carbon::parse($latestVisit->visit_date)->translatedFormat('d M Y') : 'Belum Pernah' }}
+                    </span>
+                    @if($latestVisit)
+                        <span class="text-[10px] text-slate-400 font-mono">{{ $latestVisit->created_at->format('H:i') }} WIB</span>
+                    @endif
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-xl {{ $todayVisit ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500' }} flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-[11px] text-slate-500 font-medium block">Presensi Hari Ini</span>
+                    @if($todayVisit)
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 mt-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Sudah Presensi Mandiri
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 mt-1">
+                            Belum Presensi Hari Ini
+                        </span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
     <!-- Visits Table Card with Scroll Reveal & Hover -->
-    <div class="scroll-reveal delay-2 bg-white rounded-xl border border-[#e2e8f0] overflow-hidden shadow-xs card-hover">
+    <div class="scroll-reveal delay-2 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
         <!-- Mobile Swipe Helper Indicator -->
-        <div class="md:hidden px-4 py-2 bg-[#f8fafc] text-[11px] text-gray-500 border-b border-[#e2e8f0] flex items-center justify-between">
+        <div class="md:hidden px-4 py-2 bg-slate-50 text-[11px] text-slate-500 border-b border-slate-200 flex items-center justify-between">
             <span class="flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                 </svg>
                 Geser tabel ke samping untuk melihat detail
             </span>
-            <span class="text-[10px] font-mono text-gray-400">Scroll &rarr;</span>
+            <span class="text-[10px] font-mono text-slate-400">Scroll &rarr;</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full min-w-[680px] text-left text-xs">
-                <thead class="bg-[#e2e8f0]/50 border-b border-[#e2e8f0] text-gray-600 font-semibold uppercase text-[11px] tracking-wider">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
                     <tr>
-                        <th class="py-3 px-4 w-12 text-center">No</th>
-                        <th class="py-3 px-4">Tanggal & Waktu</th>
-                        <th class="py-3 px-4">NIS / NIP</th>
-                        <th class="py-3 px-4">Nama Pengunjung</th>
-                        <th class="py-3 px-4 text-center">Tujuan</th>
-                        <th class="py-3 px-4">Catatan</th>
+                        <th class="py-3.5 px-4 w-12 text-center">No</th>
+                        <th class="py-3.5 px-4">Tanggal & Waktu</th>
+                        <th class="py-3.5 px-4">NIS / NIP</th>
+                        <th class="py-3.5 px-4">Nama Pengunjung</th>
+                        <th class="py-3.5 px-4 text-center">Tujuan</th>
+                        <th class="py-3.5 px-4">Catatan Kunjungan</th>
                         @if(auth()->user()->isPustakawan())
-                            <th class="py-3 px-4 text-center w-16">Aksi</th>
+                            <th class="py-3.5 px-4 text-center w-16">Aksi</th>
                         @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-[#e2e8f0]/60">
+                <tbody class="divide-y divide-slate-100">
                     @forelse($visits as $index => $visit)
-                        <tr class="hover:bg-[#1a4f8b]/5 hover:translate-x-0.5 transition-all duration-150">
-                            <td class="py-3.5 px-4 text-center text-gray-400 font-mono text-[11px]">
+                        <tr class="hover:bg-blue-50/40 transition-colors duration-150">
+                            <td class="py-3.5 px-4 text-center text-slate-400 font-mono text-[11px]">
                                 {{ $visits->firstItem() + $index }}
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-gray-900">{{ \Carbon\Carbon::parse($visit->visit_date)->translatedFormat('d M Y') }}</div>
-                                <div class="text-[10px] text-gray-400 font-mono">{{ $visit->created_at->format('H:i') }} WIB</div>
+                                <div class="font-semibold text-slate-900">{{ \Carbon\Carbon::parse($visit->visit_date)->translatedFormat('d M Y') }}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">{{ $visit->created_at->format('H:i') }} WIB</div>
                             </td>
-                            <td class="py-3.5 px-4 font-mono font-medium text-gray-700 text-[11px]">
+                            <td class="py-3.5 px-4 font-mono font-medium text-slate-700 text-[11px]">
                                 {{ $visit->user?->nis_nip ?? '-' }}
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-gray-900 hover:text-[#1a4f8b] transition">{{ $visit->user?->name ?? 'Tamu' }}</div>
-                                <div class="text-[10px] text-gray-400 capitalize">{{ $visit->user?->role ?? '-' }}</div>
+                                <div class="font-semibold text-slate-900 hover:text-[#1a4f8b] transition">{{ $visit->user?->name ?? 'Tamu' }}</div>
+                                <div class="text-[10px] text-slate-400 capitalize">{{ $visit->user?->role ?? '-' }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#e2e8f0]/70 text-gray-700">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[#1a4f8b] border border-blue-200">
                                     {{ $visit->purpose }}
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 text-gray-500 max-w-xs truncate">
-                                {{ $visit->notes ?: '-' }}
+                            <td class="py-3.5 px-4 text-slate-500 max-w-xs truncate">
+                                {{ $visit->notes ?: 'Presensi Mandiri Kiosk LAN' }}
                             </td>
                             @if(auth()->user()->isPustakawan())
                                 <td class="py-3.5 px-4 text-center">
                                     <form method="POST" action="{{ route('visits.destroy', $visit) }}" onsubmit="return confirm('Hapus log kunjungan ini?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-1.5 rounded-md text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Log">
+                                        <button type="submit" class="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition" title="Hapus Log">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                             </svg>
@@ -170,8 +229,14 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ auth()->user()->isPustakawan() ? 7 : 6 }}" class="py-12 text-center text-gray-400">
-                                Belum ada data kunjungan yang tercatat.
+                            <td colspan="{{ auth()->user()->isPustakawan() ? 7 : 6 }}" class="py-12 text-center text-slate-400">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-[#1a4f8b] flex items-center justify-center mx-auto mb-3">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-semibold text-slate-800">Belum ada riwayat kunjungan yang tercatat</p>
+                                <p class="text-xs text-slate-400 mt-1">Presensi mandiri Anda melalui Kiosk Perpustakaan akan otomatis tersimpan di sini.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -180,7 +245,7 @@
         </div>
 
         @if($visits->hasPages())
-            <div class="p-4 border-t border-[#e2e8f0]">
+            <div class="p-4 border-t border-slate-200">
                 {{ $visits->links() }}
             </div>
         @endif

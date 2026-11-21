@@ -227,17 +227,6 @@
                     </button>
                 </form>
             </div>
-
-            <!-- Bottom Kiosk Station Shortcut Link with Hover Slide Effect -->
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span class="text-slate-400 text-[11px]">Hanya mengisi presensi?</span>
-                <a href="{{ route('kiosk.index') }}" class="font-medium text-[#1a4f8b] hover:text-[#102a54] hover:underline inline-flex items-center gap-1.5 transition-all text-xs group">
-                    <span>Buka Kios Presensi Mandiri</span>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </a>
-            </div>
         </div>
 
     </div>

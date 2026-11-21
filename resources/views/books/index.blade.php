@@ -148,70 +148,70 @@
     </div>
 
     <!-- Books Card Grid with Staggered Scroll-Reveal & Hover Lift -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+    <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
         @forelse($books as $book)
             <div @click="openBookDetail({{ json_encode($book) }})" 
                  class="scroll-reveal delay-{{ ($loop->index % 4) + 1 }} bg-white rounded-xl border border-[#e2e8f0] flex flex-col justify-between overflow-hidden card-hover shadow-xs group cursor-pointer hover:border-[#1a4f8b]/50 hover:shadow-md transition-all">
                 <!-- Book Cover Header with Spine Effect -->
-                <div class="h-48 w-full bg-[#e2e8f0]/30 overflow-hidden relative border-b border-[#e2e8f0] before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:bg-gradient-to-r before:from-black/25 before:to-transparent before:z-10">
+                <div class="h-40 sm:h-48 w-full bg-[#e2e8f0]/30 overflow-hidden relative border-b border-[#e2e8f0] before:absolute before:inset-y-0 before:left-0 before:w-1.5 before:bg-gradient-to-r before:from-black/25 before:to-transparent before:z-10">
                     @if($book->cover_url)
                         <img src="{{ $book->cover_url }}" alt="{{ $book->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     @else
-                        <div class="w-full h-full flex flex-col items-center justify-center p-4 text-[#1a4f8b] relative">
-                            <svg class="w-10 h-10 mb-1 opacity-70 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-full h-full flex flex-col items-center justify-center p-3 sm:p-4 text-[#1a4f8b] relative">
+                            <svg class="w-8 sm:w-10 h-8 sm:h-10 mb-1 opacity-70 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            <span class="text-[10px] text-gray-500 font-mono text-center uppercase tracking-wider">{{ $book->category?->code ?? 'DDC' }}</span>
+                            <span class="text-[9px] sm:text-[10px] text-gray-500 font-mono text-center uppercase tracking-wider">{{ $book->category?->code ?? 'DDC' }}</span>
                         </div>
                     @endif
-                    <span class="absolute top-2.5 right-2.5 text-[10px] font-mono px-2 py-0.5 rounded bg-[#1a4f8b] text-white font-medium shadow-xs z-10">
+                    <span class="absolute top-2 right-2 sm:top-2.5 sm:right-2.5 text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded bg-[#1a4f8b] text-white font-medium shadow-xs z-10">
                         {{ $book->rack_location ?: 'Rak -' }}
                     </span>
                 </div>
 
-                <div class="p-4 space-y-3">
+                <div class="p-2.5 sm:p-4 space-y-2 sm:space-y-3">
                     <!-- Top Category & Year -->
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#e2e8f0]/70 text-gray-700">
+                    <div class="flex items-center justify-between gap-1 sm:gap-2">
+                        <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-medium bg-[#e2e8f0]/70 text-gray-700 truncate max-w-[110px] sm:max-w-none">
                             {{ $book->category?->code ?? '000' }} &bull; {{ $book->category?->name ?? 'Umum' }}
                         </span>
-                        <span class="text-[10px] text-gray-400 font-mono">{{ $book->publication_year ?: '-' }}</span>
+                        <span class="text-[9px] sm:text-[10px] text-gray-400 font-mono shrink-0">{{ $book->publication_year ?: '-' }}</span>
                     </div>
 
                     <!-- Book Title & Author -->
                     <div>
-                        <h3 class="font-bold text-gray-900 text-sm line-clamp-2 group-hover:text-[#1a4f8b] transition-colors duration-150" title="{{ $book->title }}">
+                        <h3 class="font-bold text-gray-900 text-xs sm:text-sm line-clamp-2 leading-tight sm:leading-snug group-hover:text-[#1a4f8b] transition-colors duration-150" title="{{ $book->title }}">
                             {{ $book->title }}
                         </h3>
-                        <p class="text-xs text-gray-500 mt-1 line-clamp-1">
+                        <p class="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 line-clamp-1">
                             {{ $book->author ?: 'Anonim' }}
                         </p>
                     </div>
 
                     <!-- Details: ISBN & Publisher -->
-                    <div class="pt-2 border-t border-[#e2e8f0]/60 space-y-1 text-[11px] text-gray-500">
+                    <div class="pt-1.5 sm:pt-2 border-t border-[#e2e8f0]/60 space-y-0.5 sm:space-y-1 text-[10px] sm:text-[11px] text-gray-500">
                         <div class="flex items-center justify-between">
                             <span>ISBN:</span>
-                            <span class="font-mono text-gray-700">{{ $book->isbn }}</span>
+                            <span class="font-mono text-gray-700 truncate max-w-[100px] sm:max-w-none">{{ $book->isbn }}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span>Penerbit:</span>
-                            <span class="text-gray-700 truncate max-w-[120px]">{{ $book->publisher ?: '-' }}</span>
+                            <span class="text-gray-700 truncate max-w-[90px] sm:max-w-[120px]">{{ $book->publisher ?: '-' }}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer: Stock & Actions -->
-                <div class="p-3.5 bg-[#e2e8f0]/25 border-t border-[#e2e8f0] flex items-center justify-between gap-2">
+                <div class="p-2.5 sm:p-3.5 bg-[#e2e8f0]/25 border-t border-[#e2e8f0] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <!-- Stock Badge -->
                     <div>
                         @if($book->available_stock > 0)
-                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-semibold text-emerald-700">
+                                <span class="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                 Tersedia {{ $book->available_stock }} / {{ $book->total_stock }}
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-700">
+                            <span class="inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-medium text-rose-700">
                                 <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                 Stok Habis
                             </span>
@@ -219,7 +219,7 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex items-center gap-1.5" @click.stop>
+                    <div class="flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-end" @click.stop>
                         @if(auth()->user()->isPustakawan())
                             <a href="{{ route('books.edit', $book) }}" class="btn-press p-1.5 rounded-lg bg-white border border-[#e2e8f0] text-gray-600 hover:text-[#1a4f8b] hover:bg-[#e2e8f0]/30 transition shadow-2xs" title="Edit Buku">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,11 +253,11 @@
                                         </svg>
                                     </template>
                                 </button>
-                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press px-3 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                                     Detail & Pinjam
                                 </button>
                             @else
-                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press px-3.5 py-1.5 rounded-lg bg-[#e2e8f0]/80 hover:bg-[#e2e8f0] text-gray-600 font-medium text-xs transition">
+                                <button type="button" @click="openBookDetail({{ json_encode($book) }})" class="btn-press flex-1 sm:flex-initial text-center px-2.5 sm:px-3.5 py-1.5 rounded-lg bg-[#e2e8f0]/80 hover:bg-[#e2e8f0] text-gray-600 font-medium text-xs transition">
                                     Lihat Info
                                 </button>
                             @endif
@@ -404,12 +404,12 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
              x-transition:leave-end="opacity-0 translate-y-3 sm:scale-95"
-             class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[82vh]">
+             class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200/90 overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[82vh]">
             
             <template x-if="selectedBook">
                 <div class="flex flex-col h-full overflow-hidden">
                     <!-- Modal Header (Compact) -->
-                    <div class="px-4 py-3 bg-gradient-to-r from-[#102a54] to-[#1a4f8b] text-white flex items-center justify-between shrink-0">
+                    <div class="px-3.5 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-[#102a54] to-[#1a4f8b] text-white flex items-center justify-between shrink-0">
                         <div class="flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-amber-400"></span>
                             <span class="text-xs font-semibold tracking-wide text-blue-100 uppercase">Detail Informasi Buku</span>
@@ -423,12 +423,12 @@
                     </div>
 
                     <!-- Modal Body (Compact Scrollable) -->
-                    <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1 text-slate-800">
+                    <div class="p-3.5 sm:p-5 overflow-y-auto space-y-3 sm:space-y-4 flex-1 text-slate-800">
                         
                         <!-- Top Split: Cover and Book Identity -->
-                        <div class="flex gap-4 items-start">
+                        <div class="flex gap-3 sm:gap-4 items-start">
                             <!-- Compact Book Cover -->
-                            <div class="relative shrink-0 w-22 sm:w-26 aspect-[3/4.2] rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
+                            <div class="relative shrink-0 w-20 sm:w-26 aspect-[3/4.2] rounded-xl overflow-hidden shadow-md border border-slate-200 bg-slate-100">
                                 <template x-if="selectedBook.cover_url">
                                     <img :src="selectedBook.cover_url" 
                                          :alt="selectedBook.title" 
