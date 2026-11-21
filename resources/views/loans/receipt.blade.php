@@ -151,27 +151,17 @@
 
     <!-- Official Printable Receipt Paper -->
     <div class="receipt-paper bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8">
-        <!-- School Letterhead (KOP) -->
-        <div class="flex items-center justify-between pb-3 border-b-2 border-slate-800">
-            <div class="w-16 shrink-0">
-                <img src="{{ asset('images/logo-sman24.jpg') }}" alt="Logo SMAN 24" class="w-14 h-14 object-contain">
-            </div>
-            <div class="flex-1 text-center px-2">
-                <div class="text-[10px] sm:text-[11px] font-semibold tracking-wider text-slate-700 uppercase">Pemerintah Daerah Provinsi Jawa Barat &bull; Dinas Pendidikan</div>
-                <div class="text-sm sm:text-base font-extrabold text-[#102a54] tracking-wider uppercase mt-0.5">SMA NEGERI 24 BANDUNG</div>
-                <div class="text-[10px] text-slate-600 font-medium mt-0.5">Unit Pelaksana Teknis Perpustakaan Digital &amp; Sirkulasi Koleksi</div>
-                <div class="text-[9px] text-slate-500">Jl. AH. Nasution No. 27 / Pasir Kunci, Cibiru, Kota Bandung 40614</div>
-            </div>
-            <div class="w-16 shrink-0 flex justify-end">
-                <div class="text-right">
-                    <span class="inline-block px-2 py-0.5 text-[9px] font-mono font-bold bg-slate-100 border border-slate-300 rounded text-slate-700">STRUK RESMI</span>
-                </div>
+        <!-- Header Struk (Perpustakaan SMA Negeri 24 Bandung & Alamat) -->
+        <div class="flex items-center justify-center gap-3.5 pb-4 border-b border-slate-200 text-center">
+            <img src="{{ asset('images/logo-sman24.jpg') }}" alt="Logo SMAN 24" class="w-12 h-12 rounded-full object-contain bg-white shadow-xs border border-slate-200 shrink-0">
+            <div>
+                <h2 class="text-base sm:text-lg font-bold text-[#102a54] tracking-wide leading-tight">Perpustakaan SMA Negeri 24 Bandung</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Jl. AH. Nasution No. 27 / Pasir Kunci, Cibiru, Kota Bandung 40614</p>
             </div>
         </div>
-        <div class="h-0.5 bg-slate-800 mt-0.5 mb-5"></div>
 
         <!-- Document Title -->
-        <div class="text-center mb-6">
+        <div class="text-center my-5">
             <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-wide uppercase">BUKTI PEMINJAMAN BUKU</h1>
             <div class="text-xs font-mono font-semibold text-slate-600 mt-0.5">Nomor: {{ $receipt->receipt_number }}</div>
         </div>
@@ -266,7 +256,7 @@
 
         <!-- Notes / Disclaimer -->
         @if ($receipt->isPending())
-            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start gap-2 mb-6">
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs flex items-start gap-2">
                 <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -275,27 +265,10 @@
                 </div>
             </div>
         @else
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 text-[11px] leading-relaxed mb-6">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 text-[11px] leading-relaxed">
                 <strong>Ketentuan Peminjaman:</strong> Harap menjaga keutuhan buku dan mengembalikan sebelum batas jatuh tempo. Keterlambatan pengembalian atau kerusakan buku akan dikenakan sanksi tata tertib perpustakaan SMAN 24 Bandung.
             </div>
         @endif
-
-        <!-- Signatures Block -->
-        <div class="mt-8 pt-4 border-t border-slate-200 grid grid-cols-2 gap-8 text-center text-xs text-slate-800">
-            <div>
-                <div class="text-slate-500 mb-1">Peminjam,</div>
-                <div class="h-16"></div>
-                <div class="font-bold underline decoration-slate-400 decoration-1 underline-offset-4">{{ $receipt->user->name }}</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">NIS/NIP: {{ $receipt->user->nis_nip ?? '-' }}</div>
-            </div>
-            <div>
-                <div class="text-slate-500 mb-1">Bandung, {{ $receipt->loan_date->translatedFormat('d F Y') }}</div>
-                <div class="text-slate-500">Petugas Perpustakaan,</div>
-                <div class="h-12"></div>
-                <div class="font-bold underline decoration-slate-400 decoration-1 underline-offset-4">{{ $receipt->processor->name ?? '..........................................' }}</div>
-                <div class="text-[11px] text-slate-500 mt-0.5">Petugas Loket Sirkulasi</div>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
