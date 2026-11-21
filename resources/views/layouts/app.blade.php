@@ -263,21 +263,32 @@
                 </button>
             @endif
 
-            @if(auth()->user()->isPustakawan())
-                <div class="pt-2 border-t border-white/15">
+            <div class="pt-2 border-t border-white/15 flex items-center justify-between">
+                @if(auth()->user()->isPustakawan())
                     <a href="{{ route('kiosk.index') }}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-white/10 hover:bg-white/20 transition">
                         <svg class="w-3.5 h-3.5 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         <span>Buka Kiosk Mandiri</span>
                     </a>
-                </div>
-            @endif
+                @else
+                    <span class="text-xs text-blue-200 truncate">{{ auth()->user()->name }}</span>
+                @endif
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-rose-300 hover:text-white hover:bg-rose-500/20 transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Keluar</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content Container (Mobile pb-24 for bottom bar clearance) -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-20 sm:pb-24 md:pb-6">
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
         <!-- Flash Messages -->
         @if(session('success'))
             <div class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5 text-emerald-800 flex items-start gap-3 shadow-2xs">
@@ -342,83 +353,12 @@
         </div>
     </div>
 
-    <!-- Minimalist Clean Footer (Mobile pb accounted for bottom bar) -->
-    <footer class="border-t border-slate-200 bg-white py-3.5 mb-16 md:mb-0 mt-auto">
+    <!-- Minimalist Clean Footer -->
+    <footer class="border-t border-slate-200 bg-white py-3.5 mt-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
             <div>Sistem Perpustakaan Digital - SMA NEGERI 24 BANDUNG</div>
         </div>
     </footer>
-
-    <!-- Fixed Bottom App Navigation Bar for Mobile (Native App Feel, 4 columns for both roles) -->
-    <nav class="md:hidden fixed bottom-0 inset-x-0 h-16 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 grid grid-cols-4 items-center px-1 shadow-sm">
-        @if(auth()->user()->isPustakawan())
-            <a href="{{ route('librarian.dashboard') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('librarian.dashboard') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('librarian.dashboard') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Dashboard</span>
-            </a>
-            <a href="{{ route('books.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('books.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('books.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Katalog</span>
-            </a>
-            <a href="{{ route('loans.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('loans.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('loans.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Sirkulasi</span>
-            </a>
-            <a href="{{ route('visits.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('visits.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('visits.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Kunjungan</span>
-            </a>
-        @else
-            <a href="{{ route('student.dashboard') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('student.dashboard') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('student.dashboard') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Beranda</span>
-            </a>
-            <a href="{{ route('books.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('books.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('books.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Jelajah</span>
-            </a>
-            <a href="{{ route('loans.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('loans.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('loans.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Pinjaman</span>
-            </a>
-            <a href="{{ route('visits.index') }}" class="flex flex-col items-center justify-center py-1 transition {{ request()->routeIs('visits.*') ? 'text-[#1a4f8b]' : 'text-slate-500 hover:text-slate-900' }}">
-                <div class="p-1 rounded-full {{ request()->routeIs('visits.*') ? 'bg-[#1a4f8b]/10' : '' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                </div>
-                <span class="text-[10px] font-medium leading-none mt-1">Riwayat</span>
-            </a>
-        @endif
-    </nav>
 
     <!-- Slide-over Drawer: Keranjang Pinjam Buku -->
     <div x-cloak 
