@@ -77,35 +77,34 @@
             </svg>
         </div>
 
-        <div class="relative z-10 p-4 sm:p-9 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+        <div class="relative z-10 p-5 sm:p-8 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-8 items-center">
             
             <!-- Left Hero Content -->
-            <div class="lg:col-span-7 space-y-4 sm:space-y-5">
+            <div class="lg:col-span-7 space-y-3.5 sm:space-y-5">
                 <!-- Big Headline -->
                 <h1 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                    Inspirasi, Cerita &<br>
-                    <span class="animate-shimmer-gold inline-block">Literasi Tanpa Batas.</span>
+                    Inspirasi, Cerita & <span class="text-amber-300 block sm:inline">Literasi Tanpa Batas.</span>
                 </h1>
 
                 <!-- Subtitle -->
-                <p class="text-blue-100/85 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal">
+                <p class="text-blue-100/90 text-xs sm:text-sm lg:text-base leading-relaxed max-w-xl font-normal">
                     Eksplorasi ribuan koleksi buku fisik & digital kurikulum merdeka, sastra fiksi, sains, hingga ensiklopedia untuk menunjang prestasimu di SMAN 24 Bandung.
                 </p>
 
                 <!-- Search Bar Directly in Hero (Mobile-friendly) -->
-                <form action="{{ route('books.index') }}" method="GET" class="relative max-w-lg pt-1">
+                <form action="{{ route('books.index') }}" method="GET" class="relative max-w-lg pt-0.5">
                     <div class="relative flex items-center">
-                        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="absolute inset-y-0 left-0 pl-3 sm:pl-3.5 flex items-center pointer-events-none text-blue-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <input type="text"
                                name="search"
                                placeholder="Cari judul buku, pengarang, atau topik..."
-                               class="w-full pl-9 sm:pl-10 pr-20 sm:pr-24 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-white/95 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 placeholder:text-[11px] sm:placeholder:text-sm focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all shadow-lg">
+                               class="w-full pl-9 sm:pl-10 pr-20 sm:pr-24 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-white/95 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 placeholder:text-[11px] sm:placeholder:text-sm focus:bg-white focus:ring-2 focus:ring-amber-400 focus:outline-none transition-all shadow-md">
                         <button type="submit" 
-                                class="btn-sheen absolute right-1.5 top-1.5 bottom-1.5 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-[#102a54] hover:bg-[#1a4f8b] text-white text-xs font-semibold transition-all flex items-center gap-1 shadow-sm active:scale-95">
+                                class="btn-sheen absolute right-1.5 top-1.5 bottom-1.5 px-3.5 sm:px-4 rounded-lg sm:rounded-xl bg-[#102a54] hover:bg-[#1a4f8b] text-white text-xs font-bold transition-all flex items-center gap-1 shadow-sm active:scale-95">
                             <span>Cari</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -114,74 +113,74 @@
                     </div>
                 </form>
 
-                <!-- Quick Category Tags -->
-                <div class="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-blue-200">
-                    <span class="text-blue-300/70 font-medium">Topik Populer:</span>
-                    <a href="{{ route('books.index', ['search' => 'Fiksi']) }}" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white">Sastra Fiksi</a>
-                    <a href="{{ route('books.index', ['search' => 'Sains']) }}" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white">Sains & Matematika</a>
-                    <a href="{{ route('books.index', ['search' => 'Sejarah']) }}" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white">Sejarah</a>
-                    <a href="{{ route('books.index', ['search' => 'Komputer']) }}" class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white">Teknologi</a>
+                <!-- Quick Category Tags (Horizontal scroll on mobile, wrap on desktop) -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] text-blue-200" style="-ms-overflow-style:none;scrollbar-width:none;">
+                    <span class="text-blue-300/80 font-medium shrink-0 text-[10px] sm:text-[11px]">Topik:</span>
+                    <a href="{{ route('books.index', ['search' => 'Fiksi']) }}" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white text-[10px] sm:text-xs">Sastra Fiksi</a>
+                    <a href="{{ route('books.index', ['search' => 'Sains']) }}" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white text-[10px] sm:text-xs">Sains & Matematika</a>
+                    <a href="{{ route('books.index', ['search' => 'Sejarah']) }}" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white text-[10px] sm:text-xs">Sejarah</a>
+                    <a href="{{ route('books.index', ['search' => 'Komputer']) }}" class="shrink-0 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 transition border border-white/10 text-white text-[10px] sm:text-xs">Teknologi</a>
                 </div>
 
                 <!-- Feature Badges with Clean Vector Icons (No Emojis) -->
-                <div class="pt-4 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-blue-100">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="pt-3.5 sm:pt-4 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs text-blue-100">
+                    <div class="flex items-center gap-2 p-2 sm:p-0 rounded-xl bg-white/5 sm:bg-transparent">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
                         </div>
-                        <div>
-                            <span class="block font-semibold text-white text-[11px]">1.200+ Judul</span>
-                            <span class="text-[10px] text-blue-200/70">Kurikulum & Fiksi</span>
+                        <div class="min-w-0">
+                            <span class="block font-semibold text-white text-[10px] sm:text-[11px] truncate">1.200+ Judul</span>
+                            <span class="block text-[9px] sm:text-[10px] text-blue-200/70 truncate">Kurikulum & Fiksi</span>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-2 p-2 sm:p-0 rounded-xl bg-white/5 sm:bg-transparent">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <div>
-                            <span class="block font-semibold text-white text-[11px]">Layanan Cepat</span>
-                            <span class="text-[10px] text-blue-200/70">Sirkulasi Digital</span>
+                        <div class="min-w-0">
+                            <span class="block font-semibold text-white text-[10px] sm:text-[11px] truncate">Layanan Cepat</span>
+                            <span class="block text-[9px] sm:text-[10px] text-blue-200/70 truncate">Sirkulasi Digital</span>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-2 p-2 sm:p-0 rounded-xl bg-white/5 sm:bg-transparent">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
                         </div>
-                        <div>
-                            <span class="block font-semibold text-white text-[11px]">Bebas Denda</span>
-                            <span class="text-[10px] text-blue-200/70">Kembalikan Tepat</span>
+                        <div class="min-w-0">
+                            <span class="block font-semibold text-white text-[10px] sm:text-[11px] truncate">Bebas Denda</span>
+                            <span class="block text-[9px] sm:text-[10px] text-blue-200/70 truncate">Kembalikan Tepat</span>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center gap-2 p-2 sm:p-0 rounded-xl bg-white/5 sm:bg-transparent">
+                        <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-amber-300">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
-                        <div>
-                            <span class="block font-semibold text-white text-[11px]">Presensi Kios</span>
-                            <span class="text-[10px] text-blue-200/70">Masukkan NIS</span>
+                        <div class="min-w-0">
+                            <span class="block font-semibold text-white text-[10px] sm:text-[11px] truncate">Presensi Kios</span>
+                            <span class="block text-[9px] sm:text-[10px] text-blue-200/70 truncate">Masukkan NIS</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Right Hero Visual: 3D Book Showcase Card -->
-            <div class="lg:col-span-5 flex justify-center lg:justify-end">
-                <div class="relative w-full max-w-sm bg-gradient-to-b from-white/15 to-white/5 backdrop-blur-xl border border-white/20 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-blue-500/10">
+            <div class="lg:col-span-5 flex justify-center lg:justify-end mt-1 lg:mt-0">
+                <div class="relative w-full max-w-sm sm:max-w-md lg:max-w-sm bg-gradient-to-b from-white/15 to-white/5 backdrop-blur-xl border border-white/20 p-3.5 sm:p-5 lg:p-6 rounded-2xl sm:rounded-3xl shadow-xl transition-all duration-300 hover:shadow-blue-500/10">
                     
                     <!-- Spotlight Label with Clean Star Icon -->
-                    <div class="flex items-center justify-between mb-3 sm:mb-4">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-[10px] tracking-wide uppercase shadow-sm">
+                    <div class="flex items-center justify-between mb-2.5 sm:mb-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-amber-400 text-slate-950 font-bold text-[9px] sm:text-[10px] tracking-wide uppercase shadow-sm">
                             <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
@@ -196,16 +195,16 @@
 
                     @if($spotlightBook)
                         <!-- Book Visual Stack with Realistic Spine Shadow -->
-                        <div @click="openBookDetail({{ json_encode($spotlightBook) }})" class="flex items-center gap-3 sm:gap-4 my-2 cursor-pointer group">
+                        <div @click="openBookDetail({{ json_encode($spotlightBook) }})" class="flex items-center gap-3 sm:gap-4 my-1.5 sm:my-2 cursor-pointer group">
                             <div class="relative shrink-0">
                                 @if($spotlightBook->cover_url)
                                     <img src="{{ $spotlightBook->cover_url }}" 
                                          alt="{{ $spotlightBook->title }}" 
-                                         class="w-20 sm:w-28 h-32 sm:h-40 rounded-xl object-cover shadow-[0_12px_24px_-6px_rgba(0,0,0,0.5)] border border-white/20 group-hover:scale-105 transition-transform duration-300">
+                                         class="w-16 sm:w-24 lg:w-28 h-24 sm:h-34 lg:h-40 rounded-xl object-cover shadow-[0_12px_24px_-6px_rgba(0,0,0,0.5)] border border-white/20 group-hover:scale-105 transition-transform duration-300">
                                 @else
-                                    <div class="w-20 sm:w-28 h-32 sm:h-40 rounded-xl bg-gradient-to-br from-blue-700 to-indigo-900 flex flex-col justify-between p-2 sm:p-2.5 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.5)] border border-white/20 group-hover:scale-105 transition-transform duration-300">
+                                    <div class="w-16 sm:w-24 lg:w-28 h-24 sm:h-34 lg:h-40 rounded-xl bg-gradient-to-br from-blue-700 to-indigo-900 flex flex-col justify-between p-2 sm:p-2.5 shadow-[0_12px_24px_-6px_rgba(0,0,0,0.5)] border border-white/20 group-hover:scale-105 transition-transform duration-300">
                                         <div class="text-[8px] sm:text-[9px] text-amber-300 font-semibold uppercase tracking-wider">{{ $spotlightBook->category?->name ?? 'Literasi' }}</div>
-                                        <div class="text-[11px] sm:text-xs font-bold text-white line-clamp-3 leading-snug">{{ $spotlightBook->title }}</div>
+                                        <div class="text-[10px] sm:text-xs font-bold text-white line-clamp-3 leading-snug">{{ $spotlightBook->title }}</div>
                                         <div class="text-[8px] sm:text-[9px] text-blue-200 truncate">{{ $spotlightBook->author }}</div>
                                     </div>
                                 @endif
@@ -213,16 +212,16 @@
                                 <div class="absolute inset-y-0 left-0 w-2 bg-gradient-to-r from-black/40 to-transparent rounded-l-xl pointer-events-none"></div>
                             </div>
 
-                            <div class="space-y-1.5 sm:space-y-2 min-w-0">
+                            <div class="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
                                 <span class="inline-block text-[9px] sm:text-[10px] font-semibold text-blue-200 uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded truncate max-w-full">
                                     {{ $spotlightBook->category?->name ?? 'Koleksi Umum' }}
                                 </span>
-                                <h3 class="text-sm sm:text-lg font-bold text-white leading-snug line-clamp-2 group-hover:text-amber-300 transition-colors">
+                                <h3 class="text-xs sm:text-base font-bold text-white leading-snug line-clamp-2 group-hover:text-amber-300 transition-colors">
                                     {{ $spotlightBook->title }}
                                 </h3>
-                                <p class="text-xs text-blue-100/75 truncate">Oleh: {{ $spotlightBook->author ?? 'Penulis' }}</p>
-                                <div class="flex items-center gap-2 pt-0.5 sm:pt-1 text-xs">
-                                    <span class="inline-flex items-center gap-1.5 text-emerald-300 font-semibold text-[11px]">
+                                <p class="text-[11px] sm:text-xs text-blue-100/75 truncate">Oleh: {{ $spotlightBook->author ?? 'Penulis' }}</p>
+                                <div class="flex items-center gap-2 pt-0.5 text-xs">
+                                    <span class="inline-flex items-center gap-1.5 text-emerald-300 font-semibold text-[10px] sm:text-[11px]">
                                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                                         Tersedia {{ $spotlightBook->available_stock }} eks
                                     </span>
@@ -231,11 +230,11 @@
                         </div>
 
                         <!-- Action Link -->
-                        <div class="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-white/15 flex items-center justify-between">
+                        <div class="mt-2.5 sm:mt-4 pt-2.5 sm:pt-4 border-t border-white/15 flex items-center justify-between">
                             <span class="text-[10px] sm:text-[11px] text-blue-200 font-mono">Rak: {{ $spotlightBook->rack_location ?? '01' }}</span>
                             <button type="button" 
                                     @click="openBookDetail({{ json_encode($spotlightBook) }})" 
-                                    class="btn-sheen inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition-all active:scale-95">
+                                    class="btn-sheen inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[11px] sm:text-xs shadow-md transition-all active:scale-95">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
