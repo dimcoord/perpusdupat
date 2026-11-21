@@ -12,7 +12,9 @@ class LoanReceipt extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'menunggu_persetujuan';
+
     public const STATUS_APPROVED = 'disetujui';
+
     public const STATUS_RETURNED = 'dikembalikan';
 
     protected $fillable = [

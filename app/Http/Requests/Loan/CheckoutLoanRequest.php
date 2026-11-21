@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Loan;
 
+use App\Http\Controllers\CartController;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -18,7 +19,7 @@ class CheckoutLoanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'book_ids' => ['nullable', 'array', 'max:'.\App\Http\Controllers\CartController::MAX_ITEMS],
+            'book_ids' => ['nullable', 'array', 'max:'.CartController::MAX_ITEMS],
             'book_ids.*' => ['integer', 'exists:books,id'],
             'nis_nip' => ['nullable', 'string', 'max:50'],
             'user_id' => ['nullable', 'integer', 'exists:users,id'],

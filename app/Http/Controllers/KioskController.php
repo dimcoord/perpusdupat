@@ -47,7 +47,7 @@ class KioskController extends Controller
         $email = Str::lower(trim($validated['email']));
 
         // Batasi percobaan brute force per email + IP kiosk
-        $throttleKey = 'kiosk-checkin|' . $email . '|' . $request->ip();
+        $throttleKey = 'kiosk-checkin|'.$email.'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);

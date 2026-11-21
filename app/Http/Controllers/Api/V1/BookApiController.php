@@ -58,6 +58,9 @@ class BookApiController extends Controller
                 if (! empty($validated['rack_location'])) {
                     $existingBook->rack_location = $validated['rack_location'];
                 }
+                if (array_key_exists('sinopsis', $validated)) {
+                    $existingBook->sinopsis = $validated['sinopsis'];
+                }
                 if (! empty($validated['cover_image'])) {
                     $existingBook->cover_image = $validated['cover_image'];
                 }
@@ -79,6 +82,7 @@ class BookApiController extends Controller
                     'publication_year' => $updatedBook->publication_year,
                     'category_id' => $updatedBook->category_id,
                     'rack_location' => $updatedBook->rack_location,
+                    'sinopsis' => $updatedBook->sinopsis,
                     'cover_image' => $updatedBook->cover_image,
                     'cover_url' => $updatedBook->cover_url,
                     'total_stock' => $updatedBook->total_stock,
@@ -98,6 +102,7 @@ class BookApiController extends Controller
                 'publication_year' => $validated['publication_year'] ?? date('Y'),
                 'category_id' => $categoryId,
                 'rack_location' => $validated['rack_location'] ?? '-',
+                'sinopsis' => $validated['sinopsis'] ?? null,
                 'cover_image' => $validated['cover_image'] ?? null,
                 'total_stock' => $stockToAdd,
                 'available_stock' => $stockToAdd,
@@ -116,6 +121,7 @@ class BookApiController extends Controller
                 'publication_year' => $newBook->publication_year,
                 'category_id' => $newBook->category_id,
                 'rack_location' => $newBook->rack_location,
+                'sinopsis' => $newBook->sinopsis,
                 'cover_image' => $newBook->cover_image,
                 'cover_url' => $newBook->cover_url,
                 'total_stock' => $newBook->total_stock,

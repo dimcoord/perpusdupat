@@ -41,7 +41,7 @@ class LoanReceiptController extends Controller
                 }
 
                 $loans = $receipt->loans()->with('book')->get();
-                $books = \App\Models\Book::whereIn('id', $loans->pluck('book_id'))->lockForUpdate()->get()->keyBy('id');
+                $books = Book::whereIn('id', $loans->pluck('book_id'))->lockForUpdate()->get()->keyBy('id');
 
                 foreach ($loans as $loan) {
                     if ($books[$loan->book_id]->available_stock <= 0) {

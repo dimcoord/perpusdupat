@@ -108,12 +108,9 @@ class Loan extends Model
             'fine' => 0,
         ];
     }
-    
-    public function receipt(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+
+    public function receipt(): BelongsTo
     {
         return $this->belongsTo(LoanReceipt::class, 'loan_receipt_id');
     }
-    
 }
-
-

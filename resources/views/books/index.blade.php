@@ -175,6 +175,11 @@
                         <p class="text-xs text-slate-500 mt-1 line-clamp-1">
                             {{ $book->author ?: 'Anonim' }}
                         </p>
+                        @if($book->sinopsis)
+                            <p class="text-[11px] text-slate-500 mt-2 line-clamp-2 italic" title="{{ $book->sinopsis }}">
+                                {{ $book->sinopsis }}
+                            </p>
+                        @endif
                     </div>
 
                     <!-- Details: ISBN & Publisher -->

@@ -87,6 +87,13 @@
                     @error('total_stock') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                <!-- Sinopsis -->
+                <div class="sm:col-span-2">
+                    <label for="sinopsis" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sinopsis Buku</label>
+                    <textarea name="sinopsis" id="sinopsis" rows="4" placeholder="Tuliskan ringkasan atau sinopsis buku..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition @error('sinopsis') border-rose-500 @enderror">{{ old('sinopsis', $book->sinopsis) }}</textarea>
+                    @error('sinopsis') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
                 <!-- Cover Image Upload -->
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Sampul Buku (Cover Image)</label>

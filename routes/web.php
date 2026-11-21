@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KioskController;
 use App\Http\Controllers\LoanController;
-use App\Http\Controllers\VisitController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\LoanReceiptController;
+use App\Http\Controllers\VisitController;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect
@@ -58,7 +58,6 @@ Route::middleware('auth')->group(function () {
         // Visits
         Route::post('/visits', [VisitController::class, 'store'])->name('visits.store');
 
-        
     });
 
     Route::middleware('role:murid')->group(function () {

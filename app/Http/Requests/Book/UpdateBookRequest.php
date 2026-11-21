@@ -35,6 +35,7 @@ class UpdateBookRequest extends FormRequest
             'publisher' => ['nullable', 'string', 'max:255'],
             'publication_year' => ['nullable', 'integer', 'min:1800', 'max:'.(date('Y') + 1)],
             'rack_location' => ['nullable', 'string', 'max:50'],
+            'sinopsis' => ['nullable', 'string'],
             'total_stock' => ['required', 'integer', 'min:0', 'max:10000'],
             'cover_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ];
@@ -53,6 +54,7 @@ class UpdateBookRequest extends FormRequest
             'publisher' => 'Penerbit',
             'publication_year' => 'Tahun Terbit',
             'rack_location' => 'Lokasi Rak',
+            'sinopsis' => 'Sinopsis',
             'total_stock' => 'Jumlah Stok',
             'cover_image' => 'Sampul Buku',
         ];
