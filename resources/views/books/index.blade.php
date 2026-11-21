@@ -6,47 +6,47 @@
     categoryId: '{{ $categoryId ?? '' }}',
     availability: '{{ $availability ?? '' }}',
     importModal: false,
-    loanModal: false,
-    selectedBook: null,
-    isSubmittingLoan: false,
-    
-    openLoanModal(book) {
-        this.selectedBook = book;
-        this.loanModal = true;
+    cartIds: {{ \Illuminate\Support\Js::from(array_map('intval', array_values(session('loan_cart', [])))) }},
+    cartMax: {{ \App\Http\Controllers\CartController::MAX_ITEMS }},
+    busyId: null,
+
+    inCart(id) {
+        return this.cartIds.includes(id);
     },
 
-    submitLoan() {
-        if (!this.selectedBook) return;
-        this.isSubmittingLoan = true;
+    async cartRequest(book, method) {
+        if (this.busyId) return;
+        this.busyId = book.id;
 
-        fetch('{{ route('loans.store') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'X-Alpine-Request': 'true'
-            },
-            body: JSON.stringify({
-                book_id: this.selectedBook.id
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            this.isSubmittingLoan = false;
+        try {
+            const res = await fetch('{{ url('cart/books') }}/' + book.id, {
+                method: method,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+
             if (data.success) {
+                if (method === 'POST') {
+                    if (!this.inCart(book.id)) this.cartIds.push(book.id);
+                } else {
+                    this.cartIds = this.cartIds.filter(i => i !== book.id);
+                }
                 Alpine.store('toast').notify(data.message, 'success');
-                this.loanModal = false;
-                setTimeout(() => window.location.reload(), 1200);
             } else {
-                Alpine.store('toast').notify(data.message || 'Gagal mengajukan pinjaman', 'error');
+                Alpine.store('toast').notify(data.message || 'Gagal memperbarui keranjang', 'error');
             }
-        })
-        .catch(() => {
-            this.isSubmittingLoan = false;
+        } catch (e) {
             Alpine.store('toast').notify('Terjadi kesalahan jaringan LAN', 'error');
-        });
-    }
+        } finally {
+            this.busyId = null;
+        }
+    },
+
+    addToCart(book) { return this.cartRequest(book, 'POST'); },
+    removeFromCart(book) { return this.cartRequest(book, 'DELETE'); }
 }">
     <!-- Top Action Bar -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -76,6 +76,14 @@
                     Unduh Template
                 </a>
             </div>
+        @else
+            <a href="{{ route('cart.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Keranjang
+                <span x-text="cartIds.length + '/' + cartMax" class="px-1.5 py-0.5 rounded-md bg-white/20 font-mono text-[10px]"></span>
+            </a>
         @endif
     </div>
 
@@ -218,8 +226,21 @@
                             </form>
                         @else
                             @if($book->available_stock > 0)
-                                <button type="button" @click="openLoanModal({{ json_encode($book) }})" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-2xs transition active:scale-95">
-                                    Ajukan Pinjam
+                                <button type="button"
+                                        x-show="!inCart({{ $book->id }})"
+                                        @click="addToCart({ id: {{ $book->id }} })"
+                                        :disabled="busyId === {{ $book->id }}"
+                                        class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-60 text-white font-semibold text-xs shadow-2xs transition active:scale-95">
+                                    + Keranjang
+                                </button>
+                                <button type="button"
+                                        x-cloak
+                                        x-show="inCart({{ $book->id }})"
+                                        @click="removeFromCart({ id: {{ $book->id }} })"
+                                        :disabled="busyId === {{ $book->id }}"
+                                        class="px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 font-semibold text-xs transition active:scale-95"
+                                        title="Klik untuk menghapus dari keranjang">
+                                    &#10003; Di Keranjang
                                 </button>
                             @else
                                 <button type="button" disabled class="px-3 py-1.5 rounded-lg bg-slate-200 text-slate-400 font-semibold text-xs cursor-not-allowed">
@@ -283,47 +304,18 @@
         </div>
     </div>
 
-    <!-- Student Loan Request Modal -->
-    <div x-cloak x-show="loanModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div @click.outside="loanModal = false" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-sm">Konfirmasi Pengajuan Peminjaman</h3>
-                <button @click="loanModal = false" class="text-slate-400 hover:text-slate-600">&times;</button>
-            </div>
-
-            <template x-if="selectedBook">
-                <div class="space-y-4">
-                    <div class="flex items-start gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-                        <template x-if="selectedBook.cover_url">
-                            <img :src="selectedBook.cover_url" alt="Cover" class="w-14 h-20 object-cover rounded-lg shadow-2xs shrink-0 border border-slate-200">
-                        </template>
-                        <template x-if="!selectedBook.cover_url">
-                            <div class="w-14 h-20 rounded-lg bg-slate-800 text-blue-300 flex items-center justify-center shrink-0 font-bold text-[10px] uppercase shadow-2xs">
-                                BUKU
-                            </div>
-                        </template>
-                        <div class="space-y-1 text-xs">
-                            <div class="font-bold text-slate-900 line-clamp-2" x-text="selectedBook.title"></div>
-                            <div class="text-slate-500">Penulis: <span class="text-slate-700" x-text="selectedBook.author || 'Anonim'"></span></div>
-                            <div class="text-slate-500">ISBN: <span class="font-mono text-slate-700" x-text="selectedBook.isbn"></span></div>
-                            <div class="text-slate-500">Lokasi: <span class="font-semibold text-blue-700" x-text="selectedBook.rack_location || '-'"></span></div>
-                        </div>
-                    </div>
-
-                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900">
-                        Durasi peminjaman standar adalah <strong>7 hari</strong>. Setelah mengajukan, silakan ambil buku fisik di meja sirkulasi pustakawan.
-                    </div>
-
-                    <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                        <button type="button" @click="loanModal = false" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">Batal</button>
-                        <button type="button" @click="submitLoan()" :disabled="isSubmittingLoan" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold transition flex items-center gap-1.5">
-                            <span x-show="isSubmittingLoan" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            <span>Ajukan Sekarang</span>
-                        </button>
-                    </div>
-                </div>
-            </template>
-        </div>
-    </div>
+    @if(! auth()->user()->isPustakawan())
+        <!-- Floating Cart Button -->
+        <a href="{{ route('cart.index') }}"
+           x-cloak
+           x-show="cartIds.length > 0"
+           x-transition
+           class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-xl transition">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            Lihat Keranjang (<span x-text="cartIds.length"></span>)
+        </a>
+    @endif
 </div>
 @endsection

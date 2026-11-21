@@ -6,6 +6,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KioskController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\VisitController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\LoanReceiptController;
 use Illuminate\Support\Facades\Route;
 
 // Root redirect
@@ -55,6 +57,8 @@ Route::middleware('auth')->group(function () {
 
         // Visits
         Route::post('/visits', [VisitController::class, 'store'])->name('visits.store');
+
+        
     });
 
     Route::middleware('role:murid')->group(function () {
@@ -68,4 +72,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/loans', [LoanController::class, 'index'])->name('loans.index');
     Route::post('/loans', [LoanController::class, 'store'])->name('loans.store');
+    Route::prefix('cart')->name('cart.')->group(function () {
+        Route::get('/', [CartController::class, 'index'])->name('index');
+        Route::post('/books/{book}', [CartController::class, 'add'])->name('add');
+        Route::delete('/books/{book}', [CartController::class, 'remove'])->name('remove');
+        Route::delete('/', [CartController::class, 'clear'])->name('clear');
+    });
+
+    Route::get('/loan-receipts/{receipt}', [LoanReceiptController::class, 'show'])->name('loan-receipts.show');
+    Route::post('/loan-receipts/{receipt}/approve', [LoanReceiptController::class, 'approve'])->name('loan-receipts.approve');
+    Route::post('/loan-receipts/{receipt}/return', [LoanReceiptController::class, 'returnAll'])->name('loan-receipts.return');
 });

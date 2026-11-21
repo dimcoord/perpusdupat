@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Loan\CheckoutLoanRequest;
 use App\Http\Requests\Loan\ReturnLoanRequest;
-use App\Http\Requests\Loan\StoreLoanRequest;
 use App\Models\Book;
 use App\Models\Loan;
+use App\Models\LoanReceipt;
 use App\Models\User;
 use App\Services\ExcelReportService;
 use Carbon\Carbon;
@@ -20,7 +21,7 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class LoanController extends Controller
 {
     /**
-     * Display a listing of book loans.
+     * Display a listing of loan receipts (one row per checkout).
      */
     public function index(Request $request): View|JsonResponse
     {
@@ -32,35 +33,35 @@ class LoanController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
 
-        $query = Loan::with([
+        $query = LoanReceipt::with([
             'user:id,name,nis_nip,phone,role',
-            'book:id,title,isbn,rack_location,available_stock',
+            'loans.book:id,title,isbn,rack_location',
         ]);
 
         // Student is strictly scoped to own records
         if ($user->isMurid()) {
             $query->where('user_id', $user->id);
-        } else {
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('user', function ($uq) use ($search) {
+        } elseif ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('receipt_number', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
                         $uq->where('name', 'like', "%{$search}%")
                             ->orWhere('nis_nip', 'like', "%{$search}%");
-                    })->orWhereHas('book', function ($bq) use ($search) {
+                    })
+                    ->orWhereHas('loans.book', function ($bq) use ($search) {
                         $bq->where('title', 'like', "%{$search}%")
                             ->orWhere('isbn', 'like', "%{$search}%");
                     });
-                });
-            }
+            });
         }
 
-        if ($status && $status !== 'semua') {
-            if ($status === 'terlambat') {
-                $query->overdue();
-            } else {
-                $query->where('status', $status);
-            }
-        }
+        match ($status) {
+            'menunggu_persetujuan' => $query->where('status', LoanReceipt::STATUS_PENDING),
+            'dipinjam' => $query->where('status', LoanReceipt::STATUS_APPROVED),
+            'terlambat' => $query->where('status', LoanReceipt::STATUS_APPROVED)->whereDate('due_date', '<', Carbon::today()),
+            'kembali' => $query->where('status', LoanReceipt::STATUS_RETURNED),
+            default => null,
+        };
 
         if ($startDate) {
             $query->whereDate('loan_date', '>=', $startDate);
@@ -70,118 +71,162 @@ class LoanController extends Controller
             $query->whereDate('loan_date', '<=', $endDate);
         }
 
-        $loans = $query->latest('id')->paginate(20)->withQueryString();
+        $receipts = $query->latest('id')->paginate(20)->withQueryString();
 
         if ($request->wantsJson() || $request->header('X-Alpine-Request')) {
             return response()->json([
-                'loans' => $loans->items(),
-                'total' => $loans->total(),
+                'receipts' => $receipts->items(),
+                'total' => $receipts->total(),
             ]);
         }
 
-        // Calculate potential dynamic overdue status for active loans
-        foreach ($loans as $loan) {
-            if ($loan->status === 'dipinjam' && Carbon::parse($loan->due_date)->isPast()) {
-                $loan->is_overdue = true;
-            } else {
-                $loan->is_overdue = ($loan->status === 'terlambat');
-            }
-        }
+        $availableBooks = $user->isPustakawan()
+            ? Book::available()->orderBy('title')->get(['id', 'title', 'isbn', 'available_stock'])
+            : collect();
 
-        return view('loans.index', compact('loans', 'status', 'search', 'startDate', 'endDate'));
+        return view('loans.index', compact('receipts', 'status', 'search', 'startDate', 'endDate', 'availableBooks'));
     }
 
     /**
-     * Store a newly created loan or loan request.
+     * Checkout the cart: create one receipt with one loan row per book.
      */
-    public function store(StoreLoanRequest $request): RedirectResponse|JsonResponse
+    public function store(CheckoutLoanRequest $request): RedirectResponse|JsonResponse
     {
         Gate::authorize('create', Loan::class);
 
         $currentUser = $request->user();
-        $book = Book::findOrFail($request->input('book_id'));
+        // Books come from the session cart, or from an explicit list (librarian modal)
+        $fromCart = ! $request->filled('book_ids');
+        $bookIds = $fromCart
+            ? CartController::ids($request)
+            : array_values(array_unique(array_map('intval', (array) $request->input('book_ids'))));
+
+        if (empty($bookIds)) {
+            return $this->fail($request, 'Keranjang peminjaman masih kosong.');
+        }
 
         // Determine target borrower
         if ($currentUser->isPustakawan()) {
             if ($request->filled('nis_nip')) {
                 $borrower = User::where('nis_nip', trim($request->input('nis_nip')))->first();
                 if (! $borrower) {
-                    return back()->with('error', 'Siswa dengan NIS tersebut tidak ditemukan.');
+                    return $this->fail($request, 'Siswa dengan NIS tersebut tidak ditemukan.');
                 }
             } elseif ($request->filled('user_id')) {
                 $borrower = User::findOrFail($request->input('user_id'));
             } else {
-                return back()->with('error', 'Peminjam harus ditentukan.');
+                return $this->fail($request, 'Peminjam harus ditentukan.');
             }
         } else {
             $borrower = $currentUser;
         }
 
-        // Check if student has overdue books
+        // Check if borrower has overdue books
         $hasOverdue = Loan::where('user_id', $borrower->id)
             ->where('status', 'dipinjam')
             ->whereDate('due_date', '<', Carbon::today())
             ->exists();
 
         if ($hasOverdue) {
-            $errMsg = 'Peminjaman tidak dapat diproses karena peminjam memiliki buku yang melewati batas jatuh tempo.';
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $errMsg], 422);
-            }
-
-            return back()->with('error', $errMsg);
+            return $this->fail($request, 'Peminjaman tidak dapat diproses karena peminjam memiliki buku yang melewati batas jatuh tempo.');
         }
 
-        // Check stock
-        if ($book->available_stock <= 0) {
-            $errMsg = "Maaf, stok buku '{$book->title}' sedang kosong.";
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => $errMsg], 422);
-            }
+        // Borrower must not already hold / have requested the same title
+        $duplicate = Loan::where('user_id', $borrower->id)
+            ->whereIn('book_id', $bookIds)
+            ->whereIn('status', ['dipinjam', 'menunggu_persetujuan'])
+            ->with('book:id,title')
+            ->first();
 
-            return back()->with('error', $errMsg);
+        if ($duplicate) {
+            return $this->fail($request, "Peminjam masih memiliki pinjaman/permintaan aktif untuk buku '{$duplicate->book->title}'.");
         }
 
         $loanDate = $request->input('loan_date') ? Carbon::parse($request->input('loan_date')) : Carbon::today();
         $dueDate = $request->input('due_date') ? Carbon::parse($request->input('due_date')) : $loanDate->copy()->addDays(7);
 
-        $status = $currentUser->isPustakawan() ? 'dipinjam' : 'menunggu_persetujuan';
+        $isPustakawan = $currentUser->isPustakawan();
+        $loanStatus = $isPustakawan ? 'dipinjam' : 'menunggu_persetujuan';
 
-        $loan = DB::transaction(function () use ($borrower, $book, $loanDate, $dueDate, $status) {
-            if ($status === 'dipinjam') {
-                $book->decrement('available_stock');
-            }
+        try {
+            $receipt = DB::transaction(function () use ($bookIds, $borrower, $currentUser, $loanDate, $dueDate, $loanStatus, $isPustakawan) {
+                // Lock rows so concurrent checkouts cannot oversell stock
+                $books = Book::whereIn('id', $bookIds)->lockForUpdate()->get();
 
-            return Loan::create([
-                'user_id' => $borrower->id,
-                'book_id' => $book->id,
-                'loan_date' => $loanDate->toDateString(),
-                'due_date' => $dueDate->toDateString(),
-                'status' => $status,
-            ]);
-        });
+                if ($books->count() !== count($bookIds)) {
+                    throw new \DomainException('Beberapa buku di keranjang sudah tidak tersedia.');
+                }
 
-        $message = $currentUser->isPustakawan()
-            ? "Peminjaman buku '{$book->title}' untuk {$borrower->name} berhasil dicatat."
-            : "Permintaan peminjaman buku '{$book->title}' berhasil diajukan. Silakan temui pustakawan untuk pengambilan buku.";
+                foreach ($books as $book) {
+                    if ($book->available_stock <= 0) {
+                        throw new \DomainException("Maaf, stok buku '{$book->title}' sedang kosong.");
+                    }
+                }
+
+                $receipt = LoanReceipt::create([
+                    'user_id' => $borrower->id,
+                    'processed_by' => $isPustakawan ? $currentUser->id : null,
+                    'loan_date' => $loanDate->toDateString(),
+                    'due_date' => $dueDate->toDateString(),
+                    'status' => $isPustakawan ? LoanReceipt::STATUS_APPROVED : LoanReceipt::STATUS_PENDING,
+                ]);
+
+                $receipt->update(['receipt_number' => LoanReceipt::numberFor($receipt)]);
+
+                foreach ($books as $book) {
+                    if ($isPustakawan) {
+                        $book->decrement('available_stock');
+                    }
+
+                    Loan::create([
+                        'user_id' => $borrower->id,
+                        'book_id' => $book->id,
+                        'loan_receipt_id' => $receipt->id,
+                        'loan_date' => $loanDate->toDateString(),
+                        'due_date' => $dueDate->toDateString(),
+                        'status' => $loanStatus,
+                    ]);
+                }
+
+                return $receipt;
+            });
+        } catch (\DomainException $e) {
+            return $this->fail($request, $e->getMessage());
+        }
+
+        if ($fromCart) {
+            $request->session()->forget(CartController::SESSION_KEY);
+        }
+
+        $count = count($bookIds);
+        $message = $isPustakawan
+            ? "Peminjaman {$count} buku untuk {$borrower->name} berhasil dicatat."
+            : "Permintaan peminjaman {$count} buku berhasil diajukan. Tunjukkan struk ini ke pustakawan untuk pengambilan buku.";
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,
-                'loan' => $loan->load(['user', 'book']),
+                'receipt' => $receipt->load(['user', 'loans.book']),
+                'receipt_url' => route('loan-receipts.show', $receipt),
             ]);
         }
 
-        return redirect()->route('loans.index')->with('success', $message);
+        return redirect()->route('loan-receipts.show', $receipt)->with('success', $message);
     }
 
     /**
-     * Approve a pending loan request (Librarian only).
+     * Approve a single pending loan (legacy rows without a receipt only).
+     * Loans that belong to a receipt are approved via LoanReceiptController@approve.
      */
     public function approve(Loan $loan): RedirectResponse
     {
         Gate::authorize('approve', $loan);
+
+        if ($loan->loan_receipt_id) {
+            return redirect()->route('loan-receipts.show', $loan->loan_receipt_id)
+                ->with('error', 'Peminjaman ini bagian dari satu struk. Setujui melalui halaman struk.');
+        }
 
         $book = $loan->book;
 
@@ -202,11 +247,16 @@ class LoanController extends Controller
     }
 
     /**
-     * Process return of a borrowed book (Librarian only).
+     * Process return of a single legacy loan (no receipt). Loans that belong to a
+     * receipt are returned together via LoanReceiptController@returnAll.
      */
     public function returnBook(ReturnLoanRequest $request, Loan $loan): RedirectResponse|JsonResponse
     {
         Gate::authorize('returnBook', $loan);
+
+        if ($loan->loan_receipt_id) {
+            return $this->fail($request, 'Pengembalian harus dilakukan untuk seluruh buku pada struk. Gunakan tombol "Kembalikan Semua".');
+        }
 
         $returnDate = $request->input('return_date') ? Carbon::parse($request->input('return_date')) : Carbon::today();
 
@@ -246,5 +296,14 @@ class LoanController extends Controller
         $fileName = 'laporan_peminjaman_'.date('Ymd_His').'.xlsx';
 
         return response()->download($filePath, $fileName)->deleteFileAfterSend(true);
+    }
+
+    private function fail(Request $request, string $message): RedirectResponse|JsonResponse
+    {
+        if ($request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => $message], 422);
+        }
+
+        return back()->with('error', $message);
     }
 }

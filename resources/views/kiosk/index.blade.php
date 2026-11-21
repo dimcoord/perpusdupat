@@ -14,8 +14,9 @@
 </head>
 <body class="h-full font-sans antialiased text-stone-800 bg-[#FAF8F5] flex flex-col justify-between p-4 sm:p-6 lg:p-8 select-none"
       x-data="{
-        nis: '',
-        purpose: 'Membaca',
+        email: '',
+        password: '',
+        purpose: 'Presensi',
         isLoading: false,
         totalToday: {{ $visitCountToday }},
         recentVisits: {{ json_encode($todayVisits->map(function($v) {
@@ -34,7 +35,7 @@
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
             this.$nextTick(() => {
-                this.$refs.nisInput.focus();
+                this.$refs.emailInput.focus();
             });
         },
 
@@ -46,13 +47,13 @@
 
         setPurpose(p) {
             this.purpose = p;
-            this.$refs.nisInput.focus();
+            this.$refs.emailInput.focus();
         },
 
         submitCheckIn() {
-            if (!this.nis.trim()) {
-                Alpine.store('toast').notify('Harap masukkan nomor NIS Anda.', 'warning');
-                this.$refs.nisInput.focus();
+            if (!this.email.trim() || !this.password) {
+                Alpine.store('toast').notify('Harap masukkan email dan kata sandi Anda.', 'warning');
+                (this.email.trim() ? this.$refs.passwordInput : this.$refs.emailInput).focus();
                 return;
             }
 
@@ -66,32 +67,44 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    nis: this.nis.trim(),
+                    email: this.email.trim(),
+                    password: this.password,
                     purpose: this.purpose
                 })
             })
             .then(res => res.json())
             .then(data => {
                 this.isLoading = false;
+                // Selalu kosongkan password setelah percobaan
+                this.password = '';
                 if (data.success) {
                     Alpine.store('toast').notify(data.message, 'success');
-                    
+
                     // Prepend to live visitor queue
                     this.recentVisits.unshift(data.data);
                     if (this.recentVisits.length > 15) {
                         this.recentVisits.pop();
                     }
                     this.totalToday = data.data.total_today;
-                    this.nis = '';
+                    this.email = '';
+
+                    // Pinjam Buku: arahkan ke katalog buku setelah toast sempat terbaca
+                    if (data.redirect) {
+                        setTimeout(() => { window.location.href = data.redirect; }, 1200);
+                        return;
+                    }
+
+                    this.$refs.emailInput.focus();
                 } else {
-                    Alpine.store('toast').notify(data.message || 'NIS tidak ditemukan.', 'error');
+                    Alpine.store('toast').notify(data.message || 'Email atau kata sandi salah.', 'error');
+                    this.$refs.passwordInput.focus();
                 }
-                this.$refs.nisInput.focus();
             })
             .catch(() => {
                 this.isLoading = false;
+                this.password = '';
                 Alpine.store('toast').notify('Gagal menghubungi server LAN perpustakaan.', 'error');
-                this.$refs.nisInput.focus();
+                this.$refs.emailInput.focus();
             });
         }
       }">
@@ -142,28 +155,41 @@
                     Stasiun Presensi Cepat
                 </div>
                 <h2 class="font-serif text-2xl lg:text-3xl font-bold text-stone-900 tracking-tight">Presensi Kunjungan Anda</h2>
-                <p class="text-xs text-stone-500 mt-1">Tempelkan barcode kartu atau ketik Nomor Induk Siswa (NIS), lalu tekan Enter.</p>
+                <p class="text-xs text-stone-500 mt-1">Masukkan email dan kata sandi akun Anda, lalu tekan Enter.</p>
             </div>
 
-            <!-- NIS Form -->
+            <!-- Login Form -->
             <form @submit.prevent="submitCheckIn()" class="space-y-5">
+                <!-- Email -->
                 <div>
-                    <label for="kiosk-nis" class="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
-                        Nomor Induk Siswa (NIS)
+                    <label for="kiosk-email" class="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                        Email
                     </label>
-                    <div class="relative">
-                        <input type="text"
-                               id="kiosk-nis"
-                               x-ref="nisInput"
-                               x-model="nis"
-                               required
-                               autocomplete="off"
-                               placeholder="Contoh: 2024101"
-                               class="w-full px-5 py-4 rounded-2xl bg-[#FAF8F5] border-2 border-[#D6CEBF] text-xl font-mono text-[#183527] placeholder:text-stone-400 focus:border-[#183527] focus:ring-4 focus:ring-[#183527]/10 focus:outline-none transition shadow-inner">
-                        <div class="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 font-mono text-xs">
-                            [Tekan Enter]
-                        </div>
-                    </div>
+                    <input type="email"
+                           id="kiosk-email"
+                           name="email"
+                           x-ref="emailInput"
+                           x-model="email"
+                           required
+                           autocomplete="off"
+                           placeholder="nama@sekolah.sch.id"
+                           class="w-full px-5 py-4 rounded-2xl bg-[#FAF8F5] border-2 border-[#D6CEBF] text-base text-[#183527] placeholder:text-stone-400 focus:border-[#183527] focus:ring-4 focus:ring-[#183527]/10 focus:outline-none transition shadow-inner">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="kiosk-password" class="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
+                        Kata Sandi
+                    </label>
+                    <input type="password"
+                           id="kiosk-password"
+                           name="password"
+                           x-ref="passwordInput"
+                           x-model="password"
+                           required
+                           autocomplete="off"
+                           placeholder="••••••••"
+                           class="w-full px-5 py-4 rounded-2xl bg-[#FAF8F5] border-2 border-[#D6CEBF] text-base text-[#183527] placeholder:text-stone-400 focus:border-[#183527] focus:ring-4 focus:ring-[#183527]/10 focus:outline-none transition shadow-inner">
                 </div>
 
                 <!-- Purpose Selector -->
@@ -171,13 +197,11 @@
                     <label class="block text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">
                         Tujuan Kunjungan
                     </label>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="grid grid-cols-2 gap-2">
                         @php
                             $purposes = [
-                                'Membaca' => 'Membaca',
-                                'Meminjam' => 'Pinjam / Balik',
-                                'Tugas' => 'Tugas',
-                                'Diskusi' => 'Diskusi',
+                                'Presensi' => 'Presensi',
+                                'Pinjam Buku' => 'Pinjam Buku',
                             ];
                         @endphp
                         @foreach($purposes as $val => $label)
@@ -194,7 +218,7 @@
                 <!-- Submit Button -->
                 <button type="submit"
                         :disabled="isLoading"
-                        class="w-full py-4 px-6 rounded-2xl bg-[#183527] hover:bg-[#234A37] active:scale-[0.99] text-[#FAF8F5] font-serif font-bold text-base shadow-sm hover:shadow transition flex items-center justify-center gap-3">
+                        class="w-full py-4 px-6 rounded-2xl bg-[#183527] hover:bg-[#234A37] active:scale-[0.99] disabled:opacity-70 text-[#FAF8F5] font-serif font-bold text-base shadow-sm hover:shadow transition flex items-center justify-center gap-3">
                     <span x-show="isLoading" class="w-5 h-5 border-2 border-[#E5C158] border-t-transparent rounded-full animate-spin"></span>
                     <span x-text="isLoading ? 'Mencatat Kehadiran...' : 'Konfirmasi Kehadiran (Check-In)'"></span>
                     <svg class="w-5 h-5 text-[#E5C158]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,7 +228,7 @@
             </form>
 
             <div class="pt-4 border-t border-[#F0ECE1] text-[11px] text-stone-500 flex items-center justify-between">
-                <span>Contoh NIS demo: <code class="bg-[#F0ECE1] text-stone-800 font-mono px-1.5 py-0.5 rounded">2024101</code>, <code class="bg-[#F0ECE1] text-stone-800 font-mono px-1.5 py-0.5 rounded">2024102</code></span>
+                <span>Gunakan akun yang sama dengan Portal Siswa.</span>
                 <span class="text-stone-400">Subnet LAN Mode</span>
             </div>
         </div>
@@ -240,8 +264,8 @@
                             <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-medium border"
                                   :class="{
                                       'bg-[#FDF4E7] text-[#9A6A1E] border-[#F3DFC1]': item.purpose && item.purpose.toLowerCase().includes('pinjam'),
-                                      'bg-[#EAEFD9] text-[#2B5941] border-[#C6D8B3]': item.purpose && item.purpose.toLowerCase().includes('baca'),
-                                      'bg-[#F0ECE1] text-stone-700 border-[#DDD5C7]': !item.purpose || (!item.purpose.toLowerCase().includes('pinjam') && !item.purpose.toLowerCase().includes('baca'))
+                                      'bg-[#EAEFD9] text-[#2B5941] border-[#C6D8B3]': item.purpose && item.purpose.toLowerCase().includes('presensi'),
+                                      'bg-[#F0ECE1] text-stone-700 border-[#DDD5C7]': !item.purpose || (!item.purpose.toLowerCase().includes('pinjam') && !item.purpose.toLowerCase().includes('presensi'))
                                   }"
                                   x-text="item.purpose"></span>
                             <div class="text-[10px] text-stone-400 font-mono mt-0.5" x-text="item.time + ' WIB'"></div>

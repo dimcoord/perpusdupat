@@ -30,6 +30,7 @@ class Loan extends Model
         'return_date',
         'status',
         'librarian_notes',
+        'loan_receipt_id',
     ];
 
     /**
@@ -107,4 +108,12 @@ class Loan extends Model
             'fine' => 0,
         ];
     }
+    
+    public function receipt(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(LoanReceipt::class, 'loan_receipt_id');
+    }
+    
 }
+
+

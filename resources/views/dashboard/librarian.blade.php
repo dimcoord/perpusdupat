@@ -274,10 +274,38 @@
             </div>
 
             <div class="divide-y divide-[#F0ECE1] max-h-[460px] overflow-y-auto">
-                @forelse($recentLoans as $loan)
+                @php
+                    // Loans of one receipt are shown (approved and returned) as one row
+                    $loanRows = $recentLoans->groupBy(fn ($l) => $l->loan_receipt_id ? 'r'.$l->loan_receipt_id : 'l'.$l->id);
+                @endphp
+
+                @forelse($loanRows as $rowLoans)
                     @php
-                        $dueDate = \Carbon\Carbon::parse($loan->due_date);
-                        $isOverdue = $dueDate->isPast() && in_array($loan->status, ['dipinjam', 'terlambat']);
+                        $loan = $rowLoans->first();
+                        $receipt = $loan->loan_receipt_id ? $loan->receipt : null;
+                        $receiptBooks = $receipt ? $receipt->loans->load('book') : collect();
+                        $isBundle = $receipt && $receiptBooks->count() > 1;
+
+                        if ($receipt) {
+                            $rowStatus = $receipt->isPending()
+                                ? 'menunggu_persetujuan'
+                                : ($receiptBooks->whereIn('status', ['dipinjam', 'terlambat'])->isNotEmpty() ? 'dipinjam' : 'kembali');
+                            $rowDue = $receipt->due_date;
+                        } else {
+                            $rowStatus = $loan->status;
+                            $rowDue = $loan->due_date;
+                        }
+
+                        $returnPayload = [
+                            'action' => $receipt ? route('loan-receipts.return', $receipt) : url('/loans/'.$loan->id.'/return'),
+                            'due_date' => \Carbon\Carbon::parse($rowDue)->toDateString(),
+                            'user' => ['name' => $loan->user?->name],
+                            'book' => ['title' => $isBundle
+                                ? $receiptBooks->count().' buku: '.$receiptBooks->pluck('book.title')->join(', ')
+                                : $loan->book?->title],
+                        ];
+                        $dueDate = \Carbon\Carbon::parse($rowDue);
+                        $isOverdue = $dueDate->isPast() && in_array($rowStatus, ['dipinjam', 'terlambat']);
                     @endphp
                     <div class="p-4 flex items-center justify-between gap-3 hover:bg-[#FAF8F5] transition-colors duration-150">
                         <div class="flex items-start gap-3 min-w-0">
@@ -289,8 +317,18 @@
 
                             <div class="space-y-1 min-w-0">
                                 <div class="text-xs font-serif font-bold text-stone-900 leading-snug truncate">
-                                    {{ $loan->book?->title ?? '-' }}
+                                    @if($isBundle)
+                                        {{ $receiptBooks->count() }} buku
+                                        <span class="font-mono font-normal text-[10px] text-stone-400">&middot; {{ $receipt->receipt_number }}</span>
+                                    @else
+                                        {{ $loan->book?->title ?? '-' }}
+                                    @endif
                                 </div>
+                                @if($isBundle)
+                                    <div class="text-[11px] text-stone-500 truncate" title="{{ $receiptBooks->pluck('book.title')->join(', ') }}">
+                                        {{ $receiptBooks->pluck('book.title')->join(', ') }}
+                                    </div>
+                                @endif
                                 <div class="text-[11px] text-stone-500 truncate">
                                     Peminjam: <span class="font-medium text-stone-800">{{ $loan->user?->name }}</span>
                                     <span class="text-stone-400 font-mono text-[10px]">({{ $loan->user?->nis_nip }})</span>
@@ -302,7 +340,7 @@
                                         Tempo: {{ $dueDate->format('d/m/Y') }}
                                     </span>
 
-                                    @if($loan->status === 'menunggu_persetujuan')
+                                    @if($rowStatus === 'menunggu_persetujuan')
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#FDF4E7] text-[#9A6A1E] border border-[#F3DFC1]">
                                             Menunggu
                                         </span>
@@ -316,22 +354,22 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
-                            @if($loan->status === 'menunggu_persetujuan')
-                                <form method="POST" action="{{ route('loans.approve', $loan) }}">
+                            @if($rowStatus === 'menunggu_persetujuan')
+                                <form method="POST" action="{{ $receipt ? route('loan-receipts.approve', $receipt) : route('loans.approve', $loan) }}">
                                     @csrf
                                     <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#183527] hover:bg-[#234A37] text-white font-medium text-xs shadow-2xs hover:shadow-xs transition active:scale-95">
                                         <svg class="w-3.5 h-3.5 text-[#E5C158]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                         </svg>
-                                        Setujui
+                                        {{ $isBundle ? 'Setujui Semua' : 'Setujui' }}
                                     </button>
                                 </form>
-                            @elseif(in_array($loan->status, ['dipinjam', 'terlambat']))
-                                <button type="button" @click="openReturnModal({{ json_encode($loan) }})" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#2D2A26] hover:bg-[#1C1A17] text-white font-medium text-xs shadow-2xs hover:shadow-xs transition active:scale-95">
+                            @elseif(in_array($rowStatus, ['dipinjam', 'terlambat']))
+                                <button type="button" @click="openReturnModal({{ json_encode($returnPayload) }})" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#2D2A26] hover:bg-[#1C1A17] text-white font-medium text-xs shadow-2xs hover:shadow-xs transition active:scale-95">
                                     <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                     </svg>
-                                    Kembalikan
+                                    {{ $isBundle ? 'Kembalikan Semua' : 'Kembalikan' }}
                                 </button>
                             @else
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[#F0ECE1] text-stone-600 border border-[#DDD5C7]">
@@ -378,7 +416,7 @@
             </div>
 
             <template x-if="selectedLoan">
-                <form :action="'/loans/' + selectedLoan.id + '/return'" method="POST" class="space-y-4">
+                <form :action="selectedLoan.action" method="POST" class="space-y-4">
                     @csrf
                     <div class="bg-[#FAF8F5] p-3.5 rounded-xl border border-[#E7E3DA] text-xs space-y-1.5">
                         <div class="flex items-start justify-between gap-2">
