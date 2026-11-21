@@ -24,6 +24,7 @@ class Book extends Model
         'author',
         'publisher',
         'publication_year',
+        'jumlah_halaman',
         'rack_location',
         'sinopsis',
         'total_stock',
@@ -49,6 +50,7 @@ class Book extends Model
     {
         return [
             'publication_year' => 'integer',
+            'jumlah_halaman' => 'integer',
             'total_stock' => 'integer',
             'available_stock' => 'integer',
         ];
@@ -68,6 +70,19 @@ class Book extends Model
         }
 
         return asset('storage/'.$this->cover_image);
+    }
+
+    /**
+     * Get or set tahun terbit (alias for publication_year).
+     */
+    public function getTahunTerbitAttribute(): ?int
+    {
+        return $this->publication_year;
+    }
+
+    public function setTahunTerbitAttribute($value): void
+    {
+        $this->attributes['publication_year'] = $value;
     }
 
     /**

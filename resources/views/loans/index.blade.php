@@ -68,6 +68,7 @@
                     'dipinjam' => 'Sedang Dipinjam',
                     'terlambat' => 'Terlambat',
                     'kembali' => 'Sudah Kembali',
+                    'ditolak' => 'Ditolak',
                 ];
             @endphp
 
@@ -167,7 +168,9 @@
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                @if($isPending)
+                                @if($receipt->status === 'ditolak')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">Ditolak</span>
+                                @elseif($isPending)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">Menunggu Persetujuan</span>
                                 @elseif($isOverdue)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800 animate-pulse">Terlambat</span>
@@ -219,7 +222,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-1">
                             <label class="block text-xs font-semibold text-slate-700">Pilih Buku <span class="text-rose-500">*</span></label>
-                            <span class="text-[11px] text-slate-500" x-text="selectedBooks.length + ' / ' + maxBooks + ' dipilih'"></span>
+                            <span class="text-[11px] text-slate-500" x-text="selectedBooks.length + ' / ' + maxBooks + ' judul dipilih (maks. ' + maxBooks + ')'"></span>
                         </div>
                         <input type="text" x-model="bookSearch" placeholder="Cari judul atau ISBN..." class="w-full px-3 py-2 border rounded-xl text-xs mb-2">
                         <div class="max-h-48 overflow-y-auto border rounded-xl divide-y divide-slate-100">

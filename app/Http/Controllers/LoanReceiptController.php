@@ -7,6 +7,7 @@ use App\Models\Book;
 use App\Models\LoanReceipt;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -74,6 +75,41 @@ class LoanReceiptController extends Controller
 
         return redirect()->route('loan-receipts.show', $receipt)
             ->with('success', 'Permintaan peminjaman disetujui. Struk siap dicetak.');
+    }
+
+    /**
+     * Reject a pending receipt (Librarian only).
+     */
+    public function reject(Request $request, LoanReceipt $receipt): RedirectResponse
+    {
+        Gate::authorize('reject', $receipt);
+
+        $notes = $request->input('librarian_notes');
+
+        try {
+            DB::transaction(function () use ($receipt, $notes) {
+                $receipt = LoanReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+
+                if (! $receipt->isPending()) {
+                    throw new \DomainException('Permintaan ini sudah diproses dan tidak dapat ditolak.');
+                }
+
+                $receipt->loans()->update([
+                    'status' => 'ditolak',
+                    'librarian_notes' => $notes,
+                ]);
+
+                $receipt->update([
+                    'status' => LoanReceipt::STATUS_REJECTED,
+                    'processed_by' => auth()->id(),
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('loan-receipts.show', $receipt)
+            ->with('success', 'Pengajuan peminjaman berhasil ditolak.');
     }
 
     /**

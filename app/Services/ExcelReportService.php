@@ -473,6 +473,7 @@ class ExcelReportService
             $author = trim((string) ($line['Penulis'] ?? $line['penulis'] ?? $line['Author'] ?? ''));
             $publisher = trim((string) ($line['Penerbit'] ?? $line['penerbit'] ?? $line['Publisher'] ?? ''));
             $year = (int) ($line['Tahun'] ?? $line['tahun'] ?? $line['Year'] ?? 0);
+            $pages = (int) ($line['Jumlah_Halaman'] ?? $line['Halaman'] ?? $line['halaman'] ?? $line['jumlah_halaman'] ?? $line['Pages'] ?? 0);
             $categoryCode = strtolower(trim((string) ($line['Kode_Kategori'] ?? $line['kode_kategori'] ?? $line['Category'] ?? '')));
             $rackLocation = trim((string) ($line['Lokasi_Rak'] ?? $line['lokasi_rak'] ?? $line['Rack'] ?? ''));
             $sinopsis = trim((string) ($line['Sinopsis'] ?? $line['sinopsis'] ?? $line['Synopsis'] ?? ''));
@@ -534,6 +535,7 @@ class ExcelReportService
                     $author,
                     $publisher,
                     $year,
+                    $pages,
                     $category,
                     $rackLocation,
                     $sinopsis,
@@ -552,6 +554,9 @@ class ExcelReportService
                         if ($year > 0) {
                             $existing->publication_year = $year;
                         }
+                        if ($pages > 0) {
+                            $existing->jumlah_halaman = $pages;
+                        }
                         if (! empty($rackLocation)) {
                             $existing->rack_location = $rackLocation;
                         }
@@ -569,6 +574,7 @@ class ExcelReportService
                             'author' => $author ?: 'Anonim',
                             'publisher' => $publisher ?: '-',
                             'publication_year' => $year > 0 ? $year : date('Y'),
+                            'jumlah_halaman' => $pages > 0 ? $pages : null,
                             'category_id' => $category->id,
                             'rack_location' => $rackLocation ?: '-',
                             'sinopsis' => $sinopsis ?: null,

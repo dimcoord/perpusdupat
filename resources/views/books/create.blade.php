@@ -73,6 +73,13 @@
                     <input type="number" name="publication_year" id="publication_year" value="{{ old('publication_year', date('Y')) }}" min="1800" max="{{ date('Y') + 1 }}" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition">
                 </div>
 
+                <!-- Page Count -->
+                <div>
+                    <label for="jumlah_halaman" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Jumlah Halaman</label>
+                    <input type="number" name="jumlah_halaman" id="jumlah_halaman" value="{{ old('jumlah_halaman') }}" min="1" max="99999" placeholder="Contoh: 350" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition @error('jumlah_halaman') border-rose-500 @enderror">
+                    @error('jumlah_halaman') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                </div>
+
                 <!-- Rack Location -->
                 <div>
                     <label for="rack_location" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Lokasi Rak Simpan</label>

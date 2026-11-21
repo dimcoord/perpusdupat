@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/visits/export', [VisitController::class, 'export'])->name('visits.export');
         Route::delete('/visits/{visit}', [VisitController::class, 'destroy'])->name('visits.destroy');
         Route::post('/loans/{loan}/approve', [LoanController::class, 'approve'])->name('loans.approve');
+        Route::post('/loans/{loan}/reject', [LoanController::class, 'reject'])->name('loans.reject');
         Route::post('/loans/{loan}/return', [LoanController::class, 'returnBook'])->name('loans.return');
         Route::get('/loans/export', [LoanController::class, 'export'])->name('loans.export');
 
@@ -80,5 +81,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/loan-receipts/{receipt}', [LoanReceiptController::class, 'show'])->name('loan-receipts.show');
     Route::post('/loan-receipts/{receipt}/approve', [LoanReceiptController::class, 'approve'])->name('loan-receipts.approve');
+    Route::post('/loan-receipts/{receipt}/reject', [LoanReceiptController::class, 'reject'])->name('loan-receipts.reject');
     Route::post('/loan-receipts/{receipt}/return', [LoanReceiptController::class, 'returnAll'])->name('loan-receipts.return');
 });
