@@ -14,7 +14,7 @@
 </head>
 <body class="h-full font-sans antialiased text-slate-900 bg-slate-50 flex flex-col" x-data="{ mobileNav: false }">
     <!-- Top Navigation Bar (SMAN 24 Navy & Royal Blue Identity) -->
-    <header class="bg-gradient-to-r from-[#102a54] via-[#163e75] to-[#1a4f8b] border-b border-[#102a54] text-white sticky top-0 z-40 shadow-sm">
+    <header class="bg-gradient-to-r from-[#102a54] via-[#163e75] to-[#1a4f8b] border-b border-[#102a54] text-white sticky top-0 z-40 shadow-sm print:hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Left: Brand & Desktop Nav Links -->
@@ -331,7 +331,7 @@
     </main>
 
     <!-- Global Toast Notification Widget (Alpine.js) -->
-    <div x-cloak x-show="$store.toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-2 scale-95" class="fixed bottom-20 md:bottom-5 right-5 z-50 max-w-sm w-[calc(100%-2.5rem)] md:w-full">
+    <div x-cloak x-show="$store.toast.show" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2 scale-95" x-transition:enter-end="opacity-100 translate-y-0 scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 scale-100" x-transition:leave-end="opacity-0 translate-y-2 scale-95" class="fixed bottom-20 md:bottom-5 right-5 z-50 max-w-sm w-[calc(100%-2.5rem)] md:w-full print:hidden">
         <div class="rounded-xl shadow-lg p-4 flex items-center justify-between text-white border"
              :class="{
                 'bg-emerald-700 border-emerald-800': $store.toast.type === 'success',
@@ -354,7 +354,7 @@
     </div>
 
     <!-- Minimalist Clean Footer -->
-    <footer class="border-t border-slate-200 bg-white py-3.5 mt-auto">
+    <footer class="border-t border-slate-200 bg-white py-3.5 mt-auto print:hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
             <div>Sistem Perpustakaan Digital - SMA NEGERI 24 BANDUNG</div>
         </div>
@@ -363,7 +363,7 @@
     <!-- Slide-over Drawer: Keranjang Pinjam Buku -->
     <div x-cloak 
          x-show="$store.cart.isOpen" 
-         class="fixed inset-0 z-50 overflow-hidden" 
+         class="fixed inset-0 z-50 overflow-hidden print:hidden" 
          @keydown.escape.window="$store.cart.close()">
         <!-- Backdrop -->
         <div x-show="$store.cart.isOpen"
