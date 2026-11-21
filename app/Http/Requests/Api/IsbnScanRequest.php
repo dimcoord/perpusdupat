@@ -32,6 +32,7 @@ class IsbnScanRequest extends FormRequest
             'publication_year' => ['nullable', 'integer', 'min:1800', 'max:'.(date('Y') + 1)],
             'category_id' => ['nullable', 'exists:categories,id'],
             'rack_location' => ['nullable', 'string', 'max:50'],
+            'sinopsis' => ['nullable', 'string'],
             'stock' => ['required', 'integer', 'min:1', 'max:1000'],
             'cover_image' => ['nullable', 'string', 'max:1000'],
         ];

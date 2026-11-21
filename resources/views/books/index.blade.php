@@ -239,12 +239,17 @@
                             <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider block truncate">
                                 {{ $book->category?->name ?? 'Umum' }}
                             </span>
-                            <h3 class="font-bold text-xs sm:text-sm text-gray-900 leading-snug line-clamp-2 group-hover:text-[#1a4f8b] transition">
+                            <h3 class="font-bold text-xs sm:text-sm text-gray-900 leading-snug line-clamp-2 group-hover:text-[#1a4f8b] transition" title="{{ $book->title }}">
                                 {{ $book->title }}
                             </h3>
                             <p class="text-xs text-gray-600 truncate">
-                                {{ $book->author }}
+                                {{ $book->author ?: 'Anonim' }}
                             </p>
+                            @if($book->sinopsis)
+                                <p class="text-[11px] text-gray-500 line-clamp-2 italic mt-1" title="{{ $book->sinopsis }}">
+                                    {{ $book->sinopsis }}
+                                </p>
+                            @endif
                             <div class="pt-1 text-[11px] text-gray-500 space-y-0.5">
                                 <div class="truncate">Rak: <span class="font-semibold text-gray-800">{{ $book->rack_location }}</span></div>
                                 <div class="font-mono text-[10px] text-gray-400">ISBN: {{ $book->isbn }}</div>
@@ -441,6 +446,19 @@
                                      x-text="selectedBook.available_stock > 0 ? 'Tersedia ' + selectedBook.available_stock + ' / ' + selectedBook.total_stock + ' buku' : 'Stok Habis'"></div>
                             </div>
                         </div>
+
+                        <!-- Sinopsis Buku -->
+                        <template x-if="selectedBook.sinopsis">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                                <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                                    </svg>
+                                    <span>Sinopsis Buku</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-line" x-text="selectedBook.sinopsis"></p>
+                            </div>
+                        </template>
 
                         <!-- Loan Terms & Limit Note -->
                         @if(!auth()->user()->isPustakawan())

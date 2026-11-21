@@ -475,6 +475,7 @@ class ExcelReportService
             $year = (int) ($line['Tahun'] ?? $line['tahun'] ?? $line['Year'] ?? 0);
             $categoryCode = strtolower(trim((string) ($line['Kode_Kategori'] ?? $line['kode_kategori'] ?? $line['Category'] ?? '')));
             $rackLocation = trim((string) ($line['Lokasi_Rak'] ?? $line['lokasi_rak'] ?? $line['Rack'] ?? ''));
+            $sinopsis = trim((string) ($line['Sinopsis'] ?? $line['sinopsis'] ?? $line['Synopsis'] ?? ''));
             $quantity = (int) ($line['Jumlah'] ?? $line['jumlah'] ?? $line['Qty'] ?? $line['Stock'] ?? 1);
 
             // Validation checks
@@ -535,6 +536,7 @@ class ExcelReportService
                     $year,
                     $category,
                     $rackLocation,
+                    $sinopsis,
                     $quantity,
                     &$importedCount,
                     &$updatedCount
@@ -553,6 +555,9 @@ class ExcelReportService
                         if (! empty($rackLocation)) {
                             $existing->rack_location = $rackLocation;
                         }
+                        if (! empty($sinopsis)) {
+                            $existing->sinopsis = $sinopsis;
+                        }
                         $existing->category_id = $category->id;
                         $existing->save();
 
@@ -566,6 +571,7 @@ class ExcelReportService
                             'publication_year' => $year > 0 ? $year : date('Y'),
                             'category_id' => $category->id,
                             'rack_location' => $rackLocation ?: '-',
+                            'sinopsis' => $sinopsis ?: null,
                             'total_stock' => $quantity,
                             'available_stock' => $quantity,
                         ]);

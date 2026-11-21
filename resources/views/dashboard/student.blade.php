@@ -719,10 +719,10 @@
                         </div>
 
                         <!-- Slot Sinopsis / Deskripsi (Otomatis tampil jika tersedia) -->
-                        <template x-if="selectedBook.description || selectedBook.synopsis">
+                        <template x-if="selectedBook.sinopsis || selectedBook.synopsis || selectedBook.description">
                             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                                 <span class="text-[10px] text-slate-500 font-semibold block uppercase tracking-wider">Sinopsis / Ringkasan Buku</span>
-                                <p class="text-xs text-slate-600 leading-relaxed max-h-24 overflow-y-auto" x-text="selectedBook.description || selectedBook.synopsis"></p>
+                                <p class="text-xs text-slate-600 leading-relaxed max-h-28 overflow-y-auto whitespace-pre-line" x-text="selectedBook.sinopsis || selectedBook.synopsis || selectedBook.description"></p>
                             </div>
                         </template>
 

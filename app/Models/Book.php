@@ -25,6 +25,7 @@ class Book extends Model
         'publisher',
         'publication_year',
         'rack_location',
+        'sinopsis',
         'total_stock',
         'available_stock',
         'cover_image',
@@ -100,6 +101,7 @@ class Book extends Model
             $q->where('isbn', 'like', "%{$term}%")
                 ->orWhere('title', 'like', "%{$term}%")
                 ->orWhere('author', 'like', "%{$term}%")
+                ->orWhere('sinopsis', 'like', "%{$term}%")
                 ->orWhere('rack_location', 'like', "%{$term}%")
                 ->orWhereHas('category', function (Builder $cq) use ($term) {
                     $cq->where('name', 'like', "%{$term}%")
