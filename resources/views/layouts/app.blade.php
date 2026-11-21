@@ -18,15 +18,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Left: Brand & Desktop Nav Links -->
-                <div class="flex items-center min-w-0">
+                <div class="flex items-center">
                     <!-- Brand & Logo with SMAN 24 Seal -->
-                    <a href="{{ url('/') }}" class="flex items-center gap-2 sm:gap-3 group shrink-0 min-w-0">
+                    <a href="{{ url('/') }}" class="flex items-center gap-3 group shrink-0">
                         <img src="{{ asset('images/logo-sman24.jpg') }}" 
                              alt="Logo SMAN 24" 
-                             class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-contain bg-white p-0.5 shadow-sm ring-1 ring-white/30 group-hover:scale-105 transition-transform duration-200 shrink-0">
-                        <div class="min-w-0">
-                            <div class="font-bold text-xs sm:text-sm tracking-wide text-white leading-tight truncate">PERPUS DUPAT</div>
-                            <div class="text-[10px] sm:text-[11px] text-blue-200/90 font-normal leading-tight mt-0.5 truncate">SMA Negeri 24 Bandung</div>
+                             class="w-9 h-9 rounded-full object-contain bg-white p-0.5 shadow-sm ring-1 ring-white/30 group-hover:scale-105 transition-transform duration-200 shrink-0">
+                        <div>
+                            <div class="font-bold text-sm tracking-wide text-white leading-tight">PERPUS DUPAT</div>
+                            <div class="text-[11px] text-blue-200/90 font-normal leading-tight mt-0.5">SMA Negeri 24 Bandung</div>
                         </div>
                     </a>
 
@@ -500,14 +500,63 @@
                                     <span>Ketentuan Peminjaman Koleksi</span>
                                 </div>
                                 <ul class="text-[10px] text-amber-950/80 space-y-0.5 list-disc list-inside leading-relaxed">
-                                    <li>Batas ambil buku fisik <strong>maksimal 2 hari sekolah</strong> di loket.</li>
-                                    <li>Masa pinjam <strong>7 hari</strong> per transaksi, bebas denda.</li>
-                                    <li>Maksimal <strong>3 buku</strong> per siswa dalam satu sesi peminjaman.</li>
+                                    <li>Maksimal <strong>2 buku</strong> aktif per siswa.</li>
+                                    <li>Durasi pinjam standar: <strong>7 hari</strong> sejak disetujui pustakawan.</li>
+                                    <li>Buku wajib diambil di loket maksimal <strong>2 hari</strong> setelah diajukan.</li>
                                 </ul>
                             </div>
 
-                            <!-- Checkbox Konfirmasi -->
-                            <div x-data="{ confirmedBatch: false, isSubmitting: false, isSuccessBanner: false }">
+                            <!-- Checkbox Konfirmasi & Checkout -->
+                            <div x-data="{
+                                confirmedBatch: false,
+                                isSubmitting: false,
+                                errorMessage: '',
+
+                                submitBatchLoan() {
+                                    if (!this.confirmedBatch || this.isSubmitting) return;
+                                    if ($store.cart.count === 0) {
+                                        Alpine.store('toast').notify('Keranjang peminjaman masih kosong.', 'warning');
+                                        return;
+                                    }
+
+                                    this.isSubmitting = true;
+                                    this.errorMessage = '';
+
+                                    fetch('{{ route('loans.store') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                            'Accept': 'application/json',
+                                            'X-Alpine-Request': 'true'
+                                        },
+                                        body: JSON.stringify({
+                                            book_ids: $store.cart.items.map(b => b.id)
+                                        })
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => {
+                                        this.isSubmitting = false;
+                                        if (data.success) {
+                                            Alpine.store('toast').notify(data.message, 'success');
+                                            const receiptUrl = data.receipt_url || (data.receipt ? '/loan-receipts/' + data.receipt.id : '{{ route('loans.index') }}');
+                                            $store.cart.clear();
+                                            $store.cart.close();
+                                            setTimeout(() => {
+                                                window.location.href = receiptUrl;
+                                            }, 800);
+                                        } else {
+                                            this.errorMessage = data.message || 'Gagal mengajukan peminjaman buku.';
+                                            Alpine.store('toast').notify(this.errorMessage, 'error');
+                                        }
+                                    })
+                                    .catch(() => {
+                                        this.isSubmitting = false;
+                                        this.errorMessage = 'Terjadi gangguan jaringan saat menghubungi server perpustakaan.';
+                                        Alpine.store('toast').notify(this.errorMessage, 'error');
+                                    });
+                                }
+                            }">
                                 <label class="flex items-start gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer select-none hover:bg-blue-50/40 transition">
                                     <input type="checkbox" x-model="confirmedBatch" class="mt-0.5 w-3.5 h-3.5 rounded text-[#1a4f8b] border-slate-300 focus:ring-[#1a4f8b]">
                                     <span class="text-slate-700 text-[10px] leading-relaxed">
@@ -515,46 +564,25 @@
                                     </span>
                                 </label>
 
-                                <!-- Success Simulation Banner -->
-                                <template x-if="isSuccessBanner">
-                                    <div class="mt-3 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-1">
-                                        <div class="font-bold flex items-center gap-1.5">
-                                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            <span>Pengajuan Keranjang Berhasil Disimulasikan!</span>
-                                        </div>
-                                        <p class="text-[11px] text-emerald-700 leading-relaxed">
-                                            UI Keranjang sudah siap. Begitu endpoint backend selesai dibuat oleh tim, tombol ini langsung dapat mengirim seluruh ID buku: <code class="bg-white/80 px-1 py-0.5 rounded font-mono text-[10px]" x-text="JSON.stringify($store.cart.items.map(b => b.id))"></code>
-                                        </p>
+                                <template x-if="errorMessage">
+                                    <div class="mt-2.5 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-[11px] flex items-start gap-2">
+                                        <svg class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span x-text="errorMessage"></span>
                                     </div>
                                 </template>
 
                                 <!-- Submit Button -->
                                 <div class="mt-3">
                                     <button type="button" 
-                                            @click="
-                                                if (!confirmedBatch) return;
-                                                isSubmitting = true;
-                                                setTimeout(() => {
-                                                    isSubmitting = false;
-                                                    isSuccessBanner = true;
-                                                    if (Alpine.store('toast')) {
-                                                        Alpine.store('toast').notify('Simulasi Checkout: ' + $store.cart.count + ' buku siap diajukan!', 'success');
-                                                    }
-                                                    setTimeout(() => {
-                                                        $store.cart.clear();
-                                                        isSuccessBanner = false;
-                                                        $store.cart.close();
-                                                    }, 3000);
-                                                }, 800);
-                                            "
+                                            @click="submitBatchLoan()"
                                             :disabled="!confirmedBatch || isSubmitting"
                                             :class="(!confirmedBatch || isSubmitting) ? 'opacity-50 cursor-not-allowed bg-slate-400' : 'bg-[#1a4f8b] hover:bg-[#102a54] active:scale-[0.98]'"
                                             class="btn-sheen w-full py-2.5 px-4 rounded-xl text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
                                         <span x-show="isSubmitting" class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                         <span x-show="!isSubmitting">Ajukan Pinjam Sekaligus (<span x-text="$store.cart.count"></span> Buku)</span>
-                                        <span x-show="isSubmitting">Memproses Pengajuan...</span>
+                                        <span x-show="isSubmitting">Menerbitkan Struk Peminjaman...</span>
                                     </button>
                                 </div>
                             </div>

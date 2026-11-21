@@ -91,13 +91,10 @@
                 Alpine.store('toast').notify(data.message, 'success');
                 this.loanModal = false;
                 this.detailModal = false;
+                const receiptUrl = data.receipt_url || data.redirect || '{{ route('loans.index') }}';
                 setTimeout(() => {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        window.location.href = '{{ route('loans.index') }}';
-                    }
-                }, 1000);
+                    window.location.href = receiptUrl;
+                }, 800);
             } else {
                 Alpine.store('toast').notify(data.message || 'Gagal mengajukan pinjaman', 'error');
             }
@@ -140,13 +137,15 @@
                 </a>
             </div>
         @else
-            <a href="{{ route('cart.index') }}" class="btn-press inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
+            <button type="button"
+                    @click="$store.cart.open()"
+                    class="btn-press inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white font-medium text-xs shadow-2xs transition active:scale-[0.98]">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                Keranjang Pinjam
-                <span x-text="cartIds.length + '/' + cartMax" class="px-1.5 py-0.5 rounded-md bg-white/20 font-mono text-[10px]"></span>
-            </a>
+                <span>Keranjang Pinjam</span>
+                <span x-text="$store.cart.count + '/' + $store.cart.maxItems" class="px-1.5 py-0.5 rounded-md bg-white/20 font-mono text-[10px]"></span>
+            </button>
         @endif
     </div>
 
@@ -291,9 +290,8 @@
                         @else
                             @if($book->available_stock > 0)
                                 <button type="button"
-                                        x-show="!inCart({{ $book->id }})"
-                                        @click="addToCart({ id: {{ $book->id }} })"
-                                        :disabled="busyId === {{ $book->id }}"
+                                        x-show="!$store.cart.has({{ $book->id }})"
+                                        @click="$store.cart.add({{ json_encode($book) }})"
                                         class="btn-press p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-blue-50 text-slate-700 font-medium text-xs transition shadow-2xs"
                                         title="Tambah ke Keranjang Pinjam">
                                     <svg class="w-4 h-4 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -302,9 +300,8 @@
                                 </button>
                                 <button type="button"
                                         x-cloak
-                                        x-show="inCart({{ $book->id }})"
-                                        @click="removeFromCart({ id: {{ $book->id }} })"
-                                        :disabled="busyId === {{ $book->id }}"
+                                        x-show="$store.cart.has({{ $book->id }})"
+                                        @click="$store.cart.remove({{ $book->id }})"
                                         class="btn-press p-1.5 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 font-medium text-xs transition shadow-2xs"
                                         title="Sudah di keranjang. Klik untuk membatalkan">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -528,17 +525,18 @@
     </div>
 
     @if(! auth()->user()->isPustakawan())
-        <!-- Floating Cart Button -->
-        <a href="{{ route('cart.index') }}"
-           x-cloak
-           x-show="cartIds.length > 0"
-           x-transition
-           class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#102a54] hover:bg-[#1a4f8b] text-white text-xs font-semibold shadow-xl transition active:scale-95 border border-white/20">
+        <!-- Floating Cart Button (Opens Right Side Drawer) -->
+        <button type="button"
+                @click="$store.cart.open()"
+                x-cloak
+                x-show="$store.cart.count > 0"
+                x-transition
+                class="fixed bottom-6 right-6 z-40 inline-flex items-center gap-2 px-4 py-3 rounded-full bg-[#102a54] hover:bg-[#1a4f8b] text-white text-xs font-semibold shadow-xl transition active:scale-95 border border-white/20">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Lihat Keranjang (<span x-text="cartIds.length"></span>)
-        </a>
+            <span>Lihat Keranjang (<span x-text="$store.cart.count"></span>)</span>
+        </button>
     @endif
 </div>
 @endsection

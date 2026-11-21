@@ -23,7 +23,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.store('cart', {
         items: [],
         isOpen: false,
-        maxItems: 3,
+        maxItems: 2,
 
         init() {
             try {
