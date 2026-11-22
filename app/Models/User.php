@@ -96,8 +96,13 @@ class User extends Authenticatable
      */
     public function hasUnfinishedLoans(): bool
     {
+        LoanReceipt::cancelExpiredPendingReceipts();
+
         return $this->loanReceipts()
             ->whereIn('status', [LoanReceipt::STATUS_PENDING, LoanReceipt::STATUS_APPROVED])
+            ->whereHas('loans', function ($q) {
+                $q->whereIn('status', ['menunggu_persetujuan', 'dipinjam', 'terlambat']);
+            })
             ->exists()
             || $this->loans()
                 ->whereIn('status', ['menunggu_persetujuan', 'dipinjam', 'terlambat'])

@@ -28,6 +28,8 @@ class LoanController extends Controller
     {
         Gate::authorize('viewAny', Loan::class);
 
+        LoanReceipt::cancelExpiredPendingReceipts();
+
         $user = $request->user();
         $status = $request->query('status');
         $search = $request->query('search');

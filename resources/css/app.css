@@ -10,6 +10,19 @@
 }
 
 /* ==========================================================================
+   Prevent Overscroll / White Rubber-band Bounce on Top of Page
+   ========================================================================== */
+html {
+    overscroll-behavior-y: none;
+    background-color: #102a54;
+}
+
+body {
+    overscroll-behavior-y: none;
+    background-color: #f8fafc;
+}
+
+/* ==========================================================================
    Smooth Micro-Interactions & Scroll Reveal Animations (High-Craft Polish)
    ========================================================================== */
 

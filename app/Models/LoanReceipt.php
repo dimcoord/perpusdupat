@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class LoanReceipt extends Model
 {
@@ -64,5 +65,38 @@ class LoanReceipt extends Model
     public static function numberFor(self $receipt): string
     {
         return 'LN-'.$receipt->created_at->format('Ymd').'-'.str_pad((string) $receipt->id, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Auto-cancel any pending loan receipts older than 2 days (48 hours).
+     */
+    public static function cancelExpiredPendingReceipts(): int
+    {
+        $expiredReceipts = static::where('status', self::STATUS_PENDING)
+            ->where('created_at', '<=', now()->subHours(48))
+            ->get();
+
+        if ($expiredReceipts->isEmpty()) {
+            return 0;
+        }
+
+        $count = 0;
+        foreach ($expiredReceipts as $receipt) {
+            DB::transaction(function () use ($receipt, &$count) {
+                $lockedReceipt = static::whereKey($receipt->id)->lockForUpdate()->first();
+                if ($lockedReceipt && $lockedReceipt->isPending()) {
+                    $lockedReceipt->loans()->update([
+                        'status' => 'ditolak',
+                        'librarian_notes' => 'Otomatis dibatalkan: batas waktu pengambilan loket (2 hari) telah berakhir.',
+                    ]);
+                    $lockedReceipt->update([
+                        'status' => self::STATUS_REJECTED,
+                    ]);
+                    $count++;
+                }
+            });
+        }
+
+        return $count;
     }
 }

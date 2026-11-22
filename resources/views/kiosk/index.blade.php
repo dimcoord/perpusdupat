@@ -70,7 +70,7 @@
 
         submitCheckIn() {
             if (!this.email.trim() || !this.password) {
-                Alpine.store('toast').notify('Harap masukkan email dan kata sandi akun Anda.', 'warning');
+                Alpine.store('toast').notify('Harap masukkan email/NIS dan kata sandi akun Anda.', 'warning');
                 (this.email.trim() ? this.$refs.passwordInput : this.$refs.emailInput).focus();
                 return;
             }
@@ -85,6 +85,7 @@
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
+                    login: this.email.trim(),
                     email: this.email.trim(),
                     password: this.password,
                     purpose: this.purpose
@@ -147,7 +148,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-none">PERPUS DUPAT</h1>
-                <p class="text-xs text-slate-500 mt-1">Stasiun Presensi Kehadiran Siswa &bull; SMA Negeri 24 Bandung</p>
+                <p class="text-xs text-slate-500 mt-1">Presensi Kehadiran Siswa &bull; SMA Negeri 24 Bandung</p>
             </div>
         </div>
 
@@ -167,14 +168,14 @@
         <div class="lg:col-span-6 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
             <div>
                 <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Presensi Mandiri Siswa</h2>
-                <p class="text-xs text-slate-500 mt-1">Masukkan email & kata sandi akun untuk mencatat kehadiran secara sah.</p>
+                <p class="text-xs text-slate-500 mt-1">Masukkan email atau NIS & kata sandi akun untuk mencatat kehadiran secara sah.</p>
             </div>
 
             <form @submit.prevent="submitCheckIn()" class="space-y-4">
-                <!-- Email Input -->
+                <!-- Email or NIS Input -->
                 <div>
                     <label for="kiosk-email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Alamat Email Akun Siswa
+                        Email atau NIS Siswa
                     </label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -182,13 +183,13 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
                             </svg>
                         </div>
-                        <input type="email"
+                        <input type="text"
                                id="kiosk-email"
                                name="email"
                                x-ref="emailInput"
                                x-model="email"
                                required
-                               placeholder="nama@siswa.perpusdupat.sch.id"
+                               placeholder="Contoh: 2024101 atau nama@siswa.perpusdupat.sch.id"
                                class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-[#1a4f8b]/20 focus:border-[#1a4f8b] outline-none transition bg-slate-50/70 hover:bg-white focus:bg-white">
                     </div>
                 </div>
@@ -397,7 +398,7 @@
     <!-- Kiosk Footer -->
     <footer class="border-t border-slate-200 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-2">
         <div>
-            Stasiun Kiosk Mandiri &bull; Perpustakaan Digital SMA Negeri 24 Bandung
+            Perpustakaan Digital SMA Negeri 24 Bandung
         </div>
         <div>
             Tekan <kbd class="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded border border-slate-300 text-[10px] font-mono">F11</kbd> untuk Layar Penuh

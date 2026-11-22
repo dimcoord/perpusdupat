@@ -436,6 +436,9 @@
                                 <div class="text-slate-600 text-[11px]">Penulis: <span class="font-medium text-slate-800" x-text="selectedBook.author"></span></div>
                                 <div class="text-slate-500 text-[11px]">Penerbit: <span class="text-slate-700" x-text="selectedBook.publisher || '-'"></span> (<span x-text="selectedBook.publication_year || '-'"></span>)</div>
                                 <div class="text-slate-500 font-mono text-[10px]">ISBN: <span x-text="selectedBook.isbn"></span></div>
+                                <template x-if="selectedBook.jumlah_halaman">
+                                    <div class="text-slate-500 text-[11px]">Halaman: <span class="font-semibold text-slate-700" x-text="selectedBook.jumlah_halaman + ' hlm'"></span></div>
+                                </template>
                             </div>
                         </div>
 
@@ -454,7 +457,7 @@
                         </div>
 
                         <!-- Sinopsis Buku -->
-                        <template x-if="selectedBook.sinopsis">
+                        <template x-if="selectedBook.sinopsis || selectedBook.synopsis || selectedBook.description">
                             <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                                 <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                                     <svg class="w-3.5 h-3.5 text-[#1a4f8b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -462,7 +465,7 @@
                                     </svg>
                                     <span>Sinopsis Buku</span>
                                 </div>
-                                <p class="text-[11px] text-slate-600 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-line" x-text="selectedBook.sinopsis"></p>
+                                <p class="text-[11px] text-slate-600 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-line" x-text="selectedBook.sinopsis || selectedBook.synopsis || selectedBook.description"></p>
                             </div>
                         </template>
 
@@ -513,12 +516,12 @@
                             @else
                                 <template x-if="selectedBook.available_stock > 0">
                                     <button type="button" 
-                                            @click="addToCart(selectedBook)" 
+                                            @click="$store.cart.has(selectedBook.id) ? $store.cart.remove(selectedBook.id) : $store.cart.add(selectedBook)" 
                                             class="btn-press px-3.5 py-1.5 rounded-lg bg-white border border-[#1a4f8b] text-[#1a4f8b] hover:bg-blue-50 font-medium text-xs transition flex items-center gap-1.5 shadow-2xs active:scale-95">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                                         </svg>
-                                        <span x-text="inCart(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
+                                        <span x-text="$store.cart.has(selectedBook.id) ? 'Di Keranjang' : '+ Keranjang'"></span>
                                     </button>
                                 </template>
 

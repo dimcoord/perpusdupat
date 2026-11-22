@@ -3,6 +3,32 @@
 @section('content')
 <div class="space-y-6" x-data="{
     newLoanModal: false,
+    approveModalOpen: false,
+    approveUrl: '',
+    approveReceiptNumber: '',
+    approveStudentName: '',
+    approveBookCount: 1,
+
+    openApproveModal(url, receiptNumber, studentName, bookCount) {
+        this.approveUrl = url;
+        this.approveReceiptNumber = receiptNumber;
+        this.approveStudentName = studentName;
+        this.approveBookCount = bookCount;
+        this.approveModalOpen = true;
+    },
+
+    cancelModalOpen: false,
+    cancelUrl: '',
+    cancelReceiptNumber: '',
+    cancelBookCount: 1,
+
+    openCancelModal(url, receiptNumber, bookCount) {
+        this.cancelUrl = url;
+        this.cancelReceiptNumber = receiptNumber;
+        this.cancelBookCount = bookCount;
+        this.cancelModalOpen = true;
+    },
+
     bookSearch: '',
     selectedBooks: [],
     maxBooks: {{ \App\Http\Controllers\CartController::MAX_ITEMS }},
@@ -151,7 +177,7 @@
                         <th class="py-3 px-4 text-center">Tgl Pinjam</th>
                         <th class="py-3 px-4 text-center">Jatuh Tempo</th>
                         <th class="py-3 px-4 text-center">Status</th>
-                        <th class="py-3 px-4 text-center">Aksi</th>
+                        <th class="py-3 px-4 text-right pr-6 w-52">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -222,17 +248,22 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center gap-1.5">
+                            <td class="py-3.5 px-4 text-right pr-6 whitespace-nowrap">
+                                <div class="inline-flex items-center justify-end gap-2">
                                     @if(auth()->user()->isPustakawan() && $isPending)
-                                        <form method="POST" action="{{ route('loan-receipts.approve', $receipt) }}">
-                                            @csrf
-                                            <button type="submit" class="btn-press px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold transition active:scale-[0.98]">
-                                                Setujui
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                @click="openApproveModal('{{ route('loan-receipts.approve', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ addslashes($receipt->user?->name ?? 'Siswa') }}', {{ $receipt->loans->count() }})"
+                                                class="btn-press px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 text-slate-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                            Setujui
+                                        </button>
+                                    @elseif(auth()->user()->isMurid() && $isPending)
+                                        <button type="button" 
+                                                @click="openCancelModal('{{ route('loan-receipts.cancel', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', {{ $receipt->loans->count() }})"
+                                                class="btn-press px-2.5 py-1 rounded-lg bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                            Batalkan
+                                        </button>
                                     @endif
-                                    <a href="{{ $url }}" class="btn-press inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98]">
+                                    <a href="{{ $url }}" class="btn-press inline-flex items-center justify-center gap-1 w-24 py-1 px-2.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98] shrink-0">
                                         <span>Lihat Struk</span>
                                         <span class="text-xs">&rarr;</span>
                                     </a>
@@ -257,8 +288,100 @@
         @endif
     </div>
 
+    <!-- Modal Konfirmasi Batalkan Pengajuan oleh Siswa -->
+    <div x-cloak x-show="cancelModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div @click.outside="cancelModalOpen = false" 
+             class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Batalkan Pengajuan Peminjaman</h3>
+                    <p class="text-xs text-gray-500">Konfirmasi pembatalan reservasi buku</p>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">No. Struk:</span>
+                    <span class="font-mono font-semibold text-[#1a4f8b]" x-text="cancelReceiptNumber"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Jumlah Buku:</span>
+                    <span class="font-semibold text-slate-800" x-text="cancelBookCount + ' buku'"></span>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Apakah Anda yakin ingin membatalkan pengajuan ini? Status struk akan dibatalkan dan kuota peminjaman Anda akan segera aktif kembali sehingga Anda bisa memilih atau mengajukan buku lain.
+            </p>
+
+            <form :action="cancelUrl" method="POST" class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                @csrf
+                <button type="button" @click="cancelModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                    Tutup
+                </button>
+                <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                    Ya, Batalkan Pengajuan
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Librarian New Loan Modal (multi-book, creates one receipt) -->
     @if(auth()->user()->isPustakawan())
+        <!-- Modal Konfirmasi Persetujuan Peminjaman -->
+        <div x-cloak x-show="approveModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+            <div @click.outside="approveModalOpen = false" 
+                 class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 text-sm">Konfirmasi Persetujuan Peminjaman</h3>
+                        <p class="text-xs text-gray-500">Persetujuan peminjaman buku oleh pustakawan</p>
+                    </div>
+                </div>
+
+                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 text-xs">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">No. Struk:</span>
+                        <span class="font-mono font-semibold text-[#1a4f8b]" x-text="approveReceiptNumber"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Nama Peminjam:</span>
+                        <span class="font-semibold text-slate-900" x-text="approveStudentName"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Jumlah Buku:</span>
+                        <span class="font-semibold text-slate-800" x-text="approveBookCount + ' buku'"></span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Apakah Anda yakin ingin menyetujui peminjaman ini? Masa pinjam (7 hari) akan segera dimulai dan status struk diperbarui menjadi <strong>Disetujui / Aktif</strong>.
+                </p>
+
+                <form :action="approveUrl" method="POST" class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    @csrf
+                    <button type="button" @click="approveModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                        Ya, Setujui Sekarang
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <div x-cloak x-show="newLoanModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
             <div @click.outside="newLoanModal = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">

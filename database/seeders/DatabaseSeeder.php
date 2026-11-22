@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Loan;
+use App\Models\LoanReceipt;
 use App\Models\User;
 use App\Models\Visit;
 use Carbon\Carbon;
@@ -254,29 +255,84 @@ class DatabaseSeeder extends Seeder
             'notes' => 'Mengerjakan tugas kelompok sejarah',
         ]);
 
-        // 7. Initial Loans
+        // 7. Initial Loans (Using LoanReceipt architecture)
         // Loan 1: Active borrowed by Ahmad
+        $receiptAhmad = LoanReceipt::create([
+            'user_id' => $studentAhmad->id,
+            'processed_by' => $librarian->id,
+            'loan_date' => Carbon::today()->subDays(2)->toDateString(),
+            'due_date' => Carbon::today()->addDays(5)->toDateString(),
+            'status' => LoanReceipt::STATUS_APPROVED,
+        ]);
+        $receiptAhmad->update(['receipt_number' => LoanReceipt::numberFor($receiptAhmad)]);
+
+        $receiptAhmad = LoanReceipt::create([
+            'user_id' => $studentAhmad->id,
+            'processed_by' => $librarian->id,
+            'loan_date' => Carbon::today()->subDays(2)->toDateString(),
+            'due_date' => Carbon::today()->addDays(5)->toDateString(),
+            'status' => LoanReceipt::STATUS_APPROVED,
+        ]);
+        $receiptAhmad->update(['receipt_number' => LoanReceipt::numberFor($receiptAhmad)]);
+
         Loan::create([
             'user_id' => $studentAhmad->id,
             'book_id' => $createdBooks[0]->id, // Bumi Manusia
+            'loan_receipt_id' => $receiptAhmad->id,
             'loan_date' => Carbon::today()->subDays(2)->toDateString(),
             'due_date' => Carbon::today()->addDays(5)->toDateString(),
             'status' => 'dipinjam',
         ]);
 
         // Loan 2: Pending approval by Siti
+        $receiptSiti = LoanReceipt::create([
+            'user_id' => $studentSiti->id,
+            'loan_date' => Carbon::today()->toDateString(),
+            'due_date' => Carbon::today()->addDays(7)->toDateString(),
+            'status' => LoanReceipt::STATUS_PENDING,
+        ]);
+        $receiptSiti->update(['receipt_number' => LoanReceipt::numberFor($receiptSiti)]);
+
+        $receiptSiti = LoanReceipt::create([
+            'user_id' => $studentSiti->id,
+            'loan_date' => Carbon::today()->toDateString(),
+            'due_date' => Carbon::today()->addDays(7)->toDateString(),
+            'status' => LoanReceipt::STATUS_PENDING,
+        ]);
+        $receiptSiti->update(['receipt_number' => LoanReceipt::numberFor($receiptSiti)]);
+
         Loan::create([
             'user_id' => $studentSiti->id,
             'book_id' => $createdBooks[1]->id, // Laskar Pelangi
+            'loan_receipt_id' => $receiptSiti->id,
             'loan_date' => Carbon::today()->toDateString(),
             'due_date' => Carbon::today()->addDays(7)->toDateString(),
             'status' => 'menunggu_persetujuan',
         ]);
 
         // Loan 3: Overdue by Budi
+        $receiptBudi = LoanReceipt::create([
+            'user_id' => $studentBudi->id,
+            'processed_by' => $librarian->id,
+            'loan_date' => Carbon::today()->subDays(12)->toDateString(),
+            'due_date' => Carbon::today()->subDays(5)->toDateString(),
+            'status' => LoanReceipt::STATUS_APPROVED,
+        ]);
+        $receiptBudi->update(['receipt_number' => LoanReceipt::numberFor($receiptBudi)]);
+
+        $receiptBudi = LoanReceipt::create([
+            'user_id' => $studentBudi->id,
+            'processed_by' => $librarian->id,
+            'loan_date' => Carbon::today()->subDays(12)->toDateString(),
+            'due_date' => Carbon::today()->subDays(5)->toDateString(),
+            'status' => LoanReceipt::STATUS_APPROVED,
+        ]);
+        $receiptBudi->update(['receipt_number' => LoanReceipt::numberFor($receiptBudi)]);
+
         Loan::create([
             'user_id' => $studentBudi->id,
             'book_id' => $createdBooks[3]->id, // Pemrograman
+            'loan_receipt_id' => $receiptBudi->id,
             'loan_date' => Carbon::today()->subDays(12)->toDateString(),
             'due_date' => Carbon::today()->subDays(5)->toDateString(),
             'status' => 'terlambat',

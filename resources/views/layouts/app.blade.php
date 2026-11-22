@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-slate-50">
+<html lang="id" class="min-h-screen bg-[#102a54] overscroll-y-none">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="h-full font-sans antialiased text-slate-900 bg-slate-50 flex flex-col" x-data="{ mobileNav: false }">
+<body class="min-h-screen font-sans antialiased text-slate-900 bg-slate-50 flex flex-col overscroll-y-none" x-data="{ mobileNav: false }">
     <!-- Top Navigation Bar (SMAN 24 Navy & Royal Blue Identity) -->
     <header class="bg-gradient-to-r from-[#102a54] via-[#163e75] to-[#1a4f8b] border-b border-[#102a54] text-white sticky top-0 z-40 shadow-sm print:hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,23 +91,25 @@
 
                 <!-- Right Actions: User Menu & Mobile Toggle -->
                 <div class="flex items-center gap-2 sm:gap-4">
-                    <!-- Keranjang Pinjam Buku Button -->
-                    <button type="button" 
-                            @click="$store.cart.open()" 
-                            class="relative p-2 rounded-xl text-blue-100 hover:text-white hover:bg-white/10 transition focus:outline-none flex items-center gap-1.5 group active:scale-95"
-                            title="Buka Keranjang Pinjam Buku">
-                        <div class="relative flex items-center justify-center">
-                            <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                            </svg>
-                            <template x-if="$store.cart.count > 0">
-                                <span class="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse font-mono leading-none"
-                                      x-text="$store.cart.count">
-                                </span>
-                            </template>
-                        </div>
-                        <span class="hidden sm:inline text-xs font-semibold tracking-wide">Keranjang</span>
-                    </button>
+                    <!-- Keranjang Pinjam Buku Button (Hanya Siswa) -->
+                    @if(auth()->user()?->isMurid())
+                        <button type="button" 
+                                @click="$store.cart.open()" 
+                                class="relative p-2 rounded-xl text-blue-100 hover:text-white hover:bg-white/10 transition focus:outline-none flex items-center gap-1.5 group active:scale-95"
+                                title="Buka Keranjang Pinjam Buku">
+                            <div class="relative flex items-center justify-center">
+                                <svg class="w-5 h-5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                                <template x-if="$store.cart.count > 0">
+                                    <span class="absolute -top-1.5 -right-2 min-w-[18px] h-[18px] px-1 bg-amber-400 text-slate-950 font-extrabold text-[10px] rounded-full flex items-center justify-center shadow-md animate-pulse font-mono leading-none"
+                                          x-text="$store.cart.count">
+                                    </span>
+                                </template>
+                            </div>
+                            <span class="hidden sm:inline text-xs font-semibold tracking-wide">Keranjang</span>
+                        </button>
+                    @endif
 
                     <!-- User Menu Dropdown -->
                     <div class="relative" x-data="{ open: false }">
@@ -360,6 +362,7 @@
         </div>
     </footer>
 
+    @if(auth()->user()?->isMurid())
     <!-- Slide-over Drawer: Keranjang Pinjam Buku -->
     <div x-cloak 
          x-show="$store.cart.isOpen" 
@@ -602,6 +605,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     @stack('scripts')
 </body>

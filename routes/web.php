@@ -82,5 +82,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/loan-receipts/{receipt}', [LoanReceiptController::class, 'show'])->name('loan-receipts.show');
     Route::post('/loan-receipts/{receipt}/approve', [LoanReceiptController::class, 'approve'])->name('loan-receipts.approve');
     Route::post('/loan-receipts/{receipt}/reject', [LoanReceiptController::class, 'reject'])->name('loan-receipts.reject');
+    Route::post('/loan-receipts/{receipt}/cancel', [LoanReceiptController::class, 'cancel'])->name('loan-receipts.cancel');
     Route::post('/loan-receipts/{receipt}/return', [LoanReceiptController::class, 'returnAll'])->name('loan-receipts.return');
 });

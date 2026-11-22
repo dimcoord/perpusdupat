@@ -107,3 +107,33 @@ test('kiosk check-in for Pinjam Buku logs student in and redirects to catalog', 
 
     $this->assertAuthenticatedAs($student);
 });
+
+test('kiosk check-in succeeds with NIS and password', function () {
+    $librarian = User::factory()->create(['nis_nip' => 'LIB001', 'role' => 'pustakawan']);
+    $student = User::factory()->create([
+        'email' => 'siswa_nis@perpusdupat.sch.id',
+        'nis_nip' => '20241099',
+        'role' => 'murid',
+        'password' => Hash::make('passwordnis'),
+    ]);
+
+    $response = $this->actingAs($librarian)->postJson(route('kiosk.check-in'), [
+        'login' => '20241099',
+        'password' => 'passwordnis',
+        'purpose' => 'Presensi',
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'data' => [
+            'nis' => '20241099',
+            'purpose' => 'Presensi',
+        ],
+    ]);
+
+    $this->assertDatabaseHas('visits', [
+        'user_id' => $student->id,
+        'purpose' => 'Presensi',
+    ]);
+});

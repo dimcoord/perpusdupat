@@ -32,4 +32,9 @@ class LoanReceiptPolicy
     {
         return $user->isPustakawan() && $receipt->isPending();
     }
+
+    public function cancel(User $user, LoanReceipt $receipt): bool
+    {
+        return $receipt->isPending() && ($receipt->user_id === $user->id || $user->isPustakawan());
+    }
 }
