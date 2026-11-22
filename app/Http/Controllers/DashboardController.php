@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Loan;
 use App\Models\Visit;
 use Carbon\Carbon;
@@ -61,7 +62,7 @@ class DashboardController extends Controller
             'total_visits' => Visit::where('user_id', $user->id)->count(),
         ];
 
-        $myActiveLoans = Loan::with('book:id,title,author,isbn,rack_location')
+        $myActiveLoans = Loan::with('book.category')
             ->where('user_id', $user->id)
             ->whereIn('status', ['dipinjam', 'terlambat', 'menunggu_persetujuan'])
             ->latest('loan_date')
@@ -72,6 +73,19 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard.student', compact('stats', 'myActiveLoans', 'myRecentVisits'));
+        // Rekomendasi & Best Reading Books untuk Siswa
+        $bestReadingBooks = Book::with('category:id,name,code')
+            ->orderBy('available_stock', 'desc')
+            ->latest('id')
+            ->take(6)
+            ->get();
+
+        // Kategori Utama Koleksi Perpustakaan
+        $categories = Category::withCount('books')
+            ->orderByDesc('books_count')
+            ->take(8)
+            ->get();
+
+        return view('dashboard.student', compact('stats', 'myActiveLoans', 'myRecentVisits', 'bestReadingBooks', 'categories'));
     }
 }

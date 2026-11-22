@@ -19,7 +19,7 @@ class AuthenticatedSessionController extends Controller
         if (Auth::check()) {
             return Auth::user()->isPustakawan()
                 ? redirect()->route('librarian.dashboard')
-                : redirect()->route('student.dashboard');
+                : redirect()->route('books.index');
         }
 
         return view('auth.login');
@@ -53,6 +53,6 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('success', 'Anda telah berhasil keluar.');
+        return redirect()->route('login');
     }
 }

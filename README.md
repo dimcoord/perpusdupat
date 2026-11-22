@@ -6,6 +6,8 @@ Dokumentasi fitur ini disusun dari kode repositori pada 28 September 2026. Pada 
 
 **Untuk mulai menjalankan aplikasi, baca [PANDUAN-MENJALANKAN.md](PANDUAN-MENJALANKAN.md).** Panduan tersebut juga mencatat hasil pemeriksaan PHP 8.3, pemblokiran PHP 8.4 oleh Windows, serta penanganan OPcache tanpa mematikan Smart App Control. Versi di bawah berasal dari berkas lock, bukan hasil pemeriksaan paket terpasang.
 
+Untuk demo dari scanner Flutter di HP sampai buku muncul di web, ikuti [Panduan demo web dan scanner ISBN](PANDUAN-DEMO-WEB-SCANNER.md).
+
 ## 1. Gambaran fitur dan pengguna
 
 | Pengguna | Fitur utama |

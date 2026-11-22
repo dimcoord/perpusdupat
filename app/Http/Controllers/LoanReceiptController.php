@@ -19,6 +19,8 @@ class LoanReceiptController extends Controller
      */
     public function show(LoanReceipt $receipt): View
     {
+        LoanReceipt::cancelExpiredPendingReceipts();
+
         Gate::authorize('view', $receipt);
 
         $receipt->load(['user:id,name,nis_nip,phone', 'processor:id,name', 'loans.book:id,title,isbn,rack_location']);
@@ -113,6 +115,41 @@ class LoanReceiptController extends Controller
     }
 
     /**
+     * Cancel a pending receipt (Student borrower or Librarian).
+     */
+    public function cancel(LoanReceipt $receipt): RedirectResponse
+    {
+        Gate::authorize('cancel', $receipt);
+
+        try {
+            DB::transaction(function () use ($receipt) {
+                $receipt = LoanReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+
+                if (! $receipt->isPending()) {
+                    throw new \DomainException('Pengajuan ini sudah diproses dan tidak dapat dibatalkan.');
+                }
+
+                $notes = auth()->user()->isPustakawan() ? 'Dibatalkan oleh pustakawan.' : 'Dibatalkan oleh siswa peminjam.';
+
+                $receipt->loans()->update([
+                    'status' => 'ditolak',
+                    'librarian_notes' => $notes,
+                ]);
+
+                $receipt->update([
+                    'status' => LoanReceipt::STATUS_REJECTED,
+                    'processed_by' => auth()->id(),
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('loan-receipts.show', $receipt)
+            ->with('success', 'Pengajuan peminjaman berhasil dibatalkan.');
+    }
+
+    /**
      * Return ALL books of a receipt at once (Librarian only). All-or-nothing.
      */
     public function returnAll(ReturnReceiptRequest $request, LoanReceipt $receipt): RedirectResponse
@@ -132,7 +169,9 @@ class LoanReceiptController extends Controller
                 $loans = $receipt->loans()->whereIn('status', ['dipinjam', 'terlambat'])->lockForUpdate()->get();
 
                 if ($loans->isEmpty()) {
-                    throw new \DomainException('Tidak ada buku yang perlu dikembalikan pada struk ini.');
+                    $receipt->update(['status' => LoanReceipt::STATUS_RETURNED]);
+
+                    return;
                 }
 
                 foreach ($loans as $loan) {

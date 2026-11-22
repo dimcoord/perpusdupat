@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Loan\CheckoutLoanRequest;
 use App\Http\Requests\Loan\ReturnLoanRequest;
+use App\Http\Requests\Loan\ReturnReceiptRequest;
 use App\Models\Book;
 use App\Models\Loan;
 use App\Models\LoanReceipt;
@@ -26,6 +27,8 @@ class LoanController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         Gate::authorize('viewAny', Loan::class);
+
+        LoanReceipt::cancelExpiredPendingReceipts();
 
         $user = $request->user();
         $status = $request->query('status');
@@ -75,9 +78,11 @@ class LoanController extends Controller
         $receipts = $query->latest('id')->paginate(20)->withQueryString();
 
         if ($request->wantsJson() || $request->header('X-Alpine-Request')) {
+            $loans = $receipts->getCollection()->flatMap->loans;
+
             return response()->json([
                 'receipts' => $receipts->items(),
-                'loans' => $receipts->getCollection()->flatMap->loans->values(),
+                'loans' => $loans->values()->all(),
                 'total' => $receipts->total(),
             ]);
         }
@@ -239,9 +244,8 @@ class LoanController extends Controller
     {
         Gate::authorize('approve', $loan);
 
-        if ($loan->loan_receipt_id) {
-            return redirect()->route('loan-receipts.show', $loan->loan_receipt_id)
-                ->with('error', 'Peminjaman ini bagian dari satu struk. Setujui melalui halaman struk.');
+        if ($loan->loan_receipt_id && $loan->receipt) {
+            return app(LoanReceiptController::class)->approve($loan->receipt);
         }
 
         $book = $loan->book;
@@ -294,8 +298,11 @@ class LoanController extends Controller
     {
         Gate::authorize('returnBook', $loan);
 
-        if ($loan->loan_receipt_id) {
-            return $this->fail($request, 'Pengembalian harus dilakukan untuk seluruh buku pada struk. Gunakan tombol "Kembalikan Semua".');
+        if ($loan->loan_receipt_id && $loan->receipt) {
+            $returnReceiptRequest = app(ReturnReceiptRequest::class);
+            $returnReceiptRequest->merge($request->all());
+
+            return app(LoanReceiptController::class)->returnAll($returnReceiptRequest, $loan->receipt);
         }
 
         $returnDate = $request->input('return_date') ? Carbon::parse($request->input('return_date')) : Carbon::today();
