@@ -55,6 +55,9 @@ class BookApiController extends Controller
                 if (! empty($validated['publication_year'])) {
                     $existingBook->publication_year = $validated['publication_year'];
                 }
+                if (array_key_exists('jumlah_halaman', $validated)) {
+                    $existingBook->jumlah_halaman = $validated['jumlah_halaman'];
+                }
                 if (! empty($validated['rack_location'])) {
                     $existingBook->rack_location = $validated['rack_location'];
                 }
@@ -80,6 +83,7 @@ class BookApiController extends Controller
                     'author' => $updatedBook->author,
                     'publisher' => $updatedBook->publisher,
                     'publication_year' => $updatedBook->publication_year,
+                    'jumlah_halaman' => $updatedBook->jumlah_halaman,
                     'category_id' => $updatedBook->category_id,
                     'rack_location' => $updatedBook->rack_location,
                     'sinopsis' => $updatedBook->sinopsis,
@@ -100,6 +104,7 @@ class BookApiController extends Controller
                 'author' => $validated['author'] ?? 'Anonim',
                 'publisher' => $validated['publisher'] ?? '-',
                 'publication_year' => $validated['publication_year'] ?? date('Y'),
+                'jumlah_halaman' => $validated['jumlah_halaman'] ?? null,
                 'category_id' => $categoryId,
                 'rack_location' => $validated['rack_location'] ?? '-',
                 'sinopsis' => $validated['sinopsis'] ?? null,
@@ -119,6 +124,7 @@ class BookApiController extends Controller
                 'author' => $newBook->author,
                 'publisher' => $newBook->publisher,
                 'publication_year' => $newBook->publication_year,
+                'jumlah_halaman' => $newBook->jumlah_halaman,
                 'category_id' => $newBook->category_id,
                 'rack_location' => $newBook->rack_location,
                 'sinopsis' => $newBook->sinopsis,

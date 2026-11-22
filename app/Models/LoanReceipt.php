@@ -17,6 +17,8 @@ class LoanReceipt extends Model
 
     public const STATUS_RETURNED = 'dikembalikan';
 
+    public const STATUS_REJECTED = 'ditolak';
+
     protected $fillable = [
         'receipt_number',
         'user_id',
@@ -49,6 +51,11 @@ class LoanReceipt extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
     }
 
     /**

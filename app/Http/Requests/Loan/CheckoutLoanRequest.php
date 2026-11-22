@@ -27,4 +27,11 @@ class CheckoutLoanRequest extends FormRequest
             'due_date' => ['nullable', 'date', 'after_or_equal:loan_date'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'book_ids.max' => 'Maksimal '.CartController::MAX_ITEMS.' judul buku dalam sekali pengajuan peminjaman.',
+        ];
+    }
 }

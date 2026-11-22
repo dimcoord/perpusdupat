@@ -60,6 +60,7 @@ class LoanController extends Controller
             'dipinjam' => $query->where('status', LoanReceipt::STATUS_APPROVED),
             'terlambat' => $query->where('status', LoanReceipt::STATUS_APPROVED)->whereDate('due_date', '<', Carbon::today()),
             'kembali' => $query->where('status', LoanReceipt::STATUS_RETURNED),
+            'ditolak' => $query->where('status', LoanReceipt::STATUS_REJECTED),
             default => null,
         };
 
@@ -76,6 +77,7 @@ class LoanController extends Controller
         if ($request->wantsJson() || $request->header('X-Alpine-Request')) {
             return response()->json([
                 'receipts' => $receipts->items(),
+                'loans' => $receipts->getCollection()->flatMap->loans->values(),
                 'total' => $receipts->total(),
             ]);
         }
@@ -105,6 +107,10 @@ class LoanController extends Controller
             return $this->fail($request, 'Keranjang peminjaman masih kosong.');
         }
 
+        if (count($bookIds) > CartController::MAX_ITEMS) {
+            return $this->fail($request, 'Maksimal '.CartController::MAX_ITEMS.' judul buku dalam sekali pengajuan.');
+        }
+
         // Determine target borrower
         if ($currentUser->isPustakawan()) {
             if ($request->filled('nis_nip')) {
@@ -119,6 +125,16 @@ class LoanController extends Controller
             }
         } else {
             $borrower = $currentUser;
+        }
+
+        // Siswa tidak bisa mengajukan peminjaman jika peminjaman sebelumnya belum selesai
+        if ($borrower->isMurid() && $borrower->hasUnfinishedLoans()) {
+            return $this->fail(
+                $request,
+                $currentUser->isMurid()
+                    ? 'Anda belum dapat mengajukan peminjaman baru karena masih memiliki peminjaman sebelumnya yang belum selesai (menunggu persetujuan/penolakan petugas, atau buku belum dikembalikan).'
+                    : "Peminjaman tidak dapat diproses karena siswa {$borrower->name} masih memiliki peminjaman yang belum selesai."
+            );
         }
 
         // Check if borrower has overdue books
@@ -244,6 +260,30 @@ class LoanController extends Controller
         });
 
         return back()->with('success', "Permintaan peminjaman disetujui. Buku telah dipinjam oleh {$loan->user->name}.");
+    }
+
+    /**
+     * Reject a single pending loan (legacy rows without a receipt only).
+     */
+    public function reject(Request $request, Loan $loan): RedirectResponse
+    {
+        Gate::authorize('reject', $loan);
+
+        if ($loan->loan_receipt_id) {
+            return redirect()->route('loan-receipts.show', $loan->loan_receipt_id)
+                ->with('error', 'Peminjaman ini bagian dari satu struk. Tolak melalui halaman struk.');
+        }
+
+        if ($loan->status !== 'menunggu_persetujuan') {
+            return back()->with('error', 'Permintaan ini sudah diproses dan tidak dapat ditolak.');
+        }
+
+        $loan->update([
+            'status' => 'ditolak',
+            'librarian_notes' => $request->input('librarian_notes'),
+        ]);
+
+        return back()->with('success', "Permintaan peminjaman untuk buku '{$loan->book->title}' telah ditolak.");
     }
 
     /**

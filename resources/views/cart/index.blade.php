@@ -10,7 +10,13 @@
     @if ($books->isEmpty())
         <p class="text-gray-500">Keranjang masih kosong. Tambahkan buku dari katalog.</p>
     @else
-        <p class="text-sm text-gray-500 mb-2">{{ $books->count() }} dari maksimal {{ $max }} buku</p>
+        @if (auth()->user()->isMurid() && auth()->user()->hasUnfinishedLoans())
+            <div class="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs">
+                <strong>Perhatian:</strong> Anda belum dapat mengajukan peminjaman baru karena masih memiliki peminjaman sebelumnya yang belum selesai (menunggu persetujuan/penolakan petugas, atau buku belum dikembalikan).
+            </div>
+        @endif
+
+        <p class="text-sm text-gray-500 mb-2">{{ $books->count() }} dari batas maksimal {{ $max }} judul buku dalam sekali pengajuan</p>
 
         <table class="w-full text-sm mb-4">
             <thead>
@@ -61,7 +67,7 @@
             @endif
 
             <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">
+                <button type="submit" @if(auth()->user()->isMurid() && auth()->user()->hasUnfinishedLoans()) disabled title="Anda masih memiliki peminjaman yang belum selesai" @endif class="px-4 py-2 bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded">
                     {{ auth()->user()->isPustakawan() ? 'Catat Peminjaman' : 'Ajukan Peminjaman' }}
                 </button>
             </div>

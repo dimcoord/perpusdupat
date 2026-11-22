@@ -28,6 +28,13 @@
             <button class="px-3 py-2 bg-green-600 text-white rounded">Setujui Semua Buku</button>
         </form>
     @endcan
+    @can('reject', $receipt)
+        <form method="POST" action="{{ route('loan-receipts.reject', $receipt) }}" style="display:flex;gap:6px;align-items:center;" onsubmit="return confirm('Apakah Anda yakin ingin menolak pengajuan peminjaman ini?');">
+            @csrf
+            <input type="text" name="librarian_notes" placeholder="Alasan penolakan (opsional)" class="border rounded px-2 py-1.5 text-xs">
+            <button class="px-3 py-2 bg-rose-600 text-white rounded">Tolak Pengajuan</button>
+        </form>
+    @endcan
     @can('returnBook', $receipt)
         <form method="POST" action="{{ route('loan-receipts.return', $receipt) }}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;" onsubmit="return confirm('Kembalikan semua buku pada struk ini?');">
             @csrf
@@ -59,6 +66,8 @@
                     <span class="badge pending">Menunggu persetujuan</span>
                 @elseif ($receipt->status === 'dikembalikan')
                     <span class="badge approved">Sudah dikembalikan</span>
+                @elseif ($receipt->status === 'ditolak')
+                    <span class="badge" style="background:#fee2e2;color:#991b1b;">Ditolak</span>
                 @else
                     <span class="badge approved">Disetujui</span>
                 @endif
@@ -90,6 +99,8 @@
 
     @if ($receipt->isPending())
         <p style="color:#92400e;">Struk ini belum berlaku sebagai bukti peminjaman sampai disetujui pustakawan.</p>
+    @elseif ($receipt->status === 'ditolak')
+        <p style="color:#dc2626;">Pengajuan peminjaman ini telah <strong>ditolak</strong> oleh petugas perpustakaan.@if($receipt->loans->first()?->librarian_notes) Alasan: {{ $receipt->loans->first()->librarian_notes }}@endif</p>
     @endif
 
     <div class="sign">

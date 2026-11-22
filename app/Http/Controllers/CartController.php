@@ -45,12 +45,16 @@ class CartController extends Controller
 
         $ids = self::ids($request);
 
+        if ($request->user()?->isMurid() && $request->user()->hasUnfinishedLoans()) {
+            return $this->respond($request, false, 'Anda belum dapat menambahkan buku ke keranjang karena masih memiliki peminjaman yang belum selesai.', count($ids));
+        }
+
         if (in_array($book->id, $ids, true)) {
             return $this->respond($request, false, "Buku '{$book->title}' sudah ada di keranjang.", count($ids));
         }
 
         if (count($ids) >= self::MAX_ITEMS) {
-            return $this->respond($request, false, 'Keranjang penuh (maksimal '.self::MAX_ITEMS.' buku per peminjaman).', count($ids));
+            return $this->respond($request, false, 'Keranjang penuh (maksimal '.self::MAX_ITEMS.' judul buku dalam sekali pengajuan).', count($ids));
         }
 
         if ($book->available_stock <= 0) {
