@@ -71,6 +71,7 @@
                     'dipinjam' => 'Sedang Dipinjam',
                     'terlambat' => 'Terlambat',
                     'kembali' => 'Sudah Kembali',
+                    'ditolak' => 'Ditolak',
                 ];
             @endphp
 
@@ -196,7 +197,11 @@
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                @if($isPending)
+                                @if($receipt->status === 'ditolak')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                        Ditolak
+                                    </span>
+                                @elseif($isPending)
                                     <div class="inline-flex flex-col items-center">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
                                             Menunggu Persetujuan
@@ -274,7 +279,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
                             <label class="block text-xs font-semibold text-slate-700">Pilih Buku <span class="text-rose-500">*</span></label>
-                            <span class="text-[11px] text-slate-500 font-medium" x-text="selectedBooks.length + ' / ' + maxBooks + ' dipilih'"></span>
+                            <span class="text-[11px] text-slate-500 font-medium" x-text="selectedBooks.length + ' / ' + maxBooks + ' judul dipilih (maks. ' + maxBooks + ')'"></span>
                         </div>
                         <input type="text" x-model="bookSearch" placeholder="Cari judul buku atau ISBN..." class="w-full px-3 py-2 border border-[#e2e8f0] rounded-xl text-xs mb-2 outline-none focus:border-[#1a4f8b] focus:ring-1 focus:ring-[#1a4f8b]">
                         <div class="max-h-48 overflow-y-auto border border-[#e2e8f0] rounded-xl divide-y divide-slate-100">

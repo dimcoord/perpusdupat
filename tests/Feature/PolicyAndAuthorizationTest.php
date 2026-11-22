@@ -3,6 +3,7 @@
 use App\Models\Book;
 use App\Models\Category;
 use App\Models\Loan;
+use App\Models\LoanReceipt;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -51,17 +52,35 @@ test('students can only see their own loans', function () {
         'available_stock' => 2,
     ]);
 
+    $receipt1 = LoanReceipt::create([
+        'receipt_number' => 'LN-20261121-00001',
+        'user_id' => $student1->id,
+        'loan_date' => Carbon::today()->toDateString(),
+        'due_date' => Carbon::today()->addDays(7)->toDateString(),
+        'status' => LoanReceipt::STATUS_APPROVED,
+    ]);
+
     $loan1 = Loan::create([
         'user_id' => $student1->id,
         'book_id' => $book->id,
+        'loan_receipt_id' => $receipt1->id,
         'loan_date' => Carbon::today()->toDateString(),
         'due_date' => Carbon::today()->addDays(7)->toDateString(),
         'status' => 'dipinjam',
     ]);
 
+    $receipt2 = LoanReceipt::create([
+        'receipt_number' => 'LN-20261121-00002',
+        'user_id' => $student2->id,
+        'loan_date' => Carbon::today()->toDateString(),
+        'due_date' => Carbon::today()->addDays(7)->toDateString(),
+        'status' => LoanReceipt::STATUS_APPROVED,
+    ]);
+
     $loan2 = Loan::create([
         'user_id' => $student2->id,
         'book_id' => $book->id,
+        'loan_receipt_id' => $receipt2->id,
         'loan_date' => Carbon::today()->toDateString(),
         'due_date' => Carbon::today()->addDays(7)->toDateString(),
         'status' => 'dipinjam',

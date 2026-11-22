@@ -27,4 +27,9 @@ class LoanReceiptPolicy
     {
         return $user->isPustakawan() && $receipt->isPending();
     }
+
+    public function reject(User $user, LoanReceipt $receipt): bool
+    {
+        return $user->isPustakawan() && $receipt->isPending();
+    }
 }

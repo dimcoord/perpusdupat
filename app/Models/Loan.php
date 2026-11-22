@@ -48,27 +48,6 @@ class Loan extends Model
     }
 
     /**
-     * Bootstrap model events.
-     */
-    protected static function booted(): void
-    {
-        static::creating(function (Loan $loan) {
-            if (! $loan->loan_receipt_id && $loan->user_id) {
-                $receipt = LoanReceipt::create([
-                    'user_id' => $loan->user_id,
-                    'loan_date' => $loan->loan_date ?? now()->toDateString(),
-                    'due_date' => $loan->due_date ?? now()->addDays(7)->toDateString(),
-                    'status' => $loan->status === 'menunggu_persetujuan'
-                        ? LoanReceipt::STATUS_PENDING
-                        : ($loan->status === 'kembali' ? LoanReceipt::STATUS_RETURNED : LoanReceipt::STATUS_APPROVED),
-                ]);
-                $receipt->update(['receipt_number' => LoanReceipt::numberFor($receipt)]);
-                $loan->loan_receipt_id = $receipt->id;
-            }
-        });
-    }
-
-    /**
      * User who borrowed the book.
      */
     public function user(): BelongsTo

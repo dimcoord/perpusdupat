@@ -46,9 +46,20 @@
             </a>
         </div>
     @else
+        @if (auth()->user()->isMurid() && auth()->user()->hasUnfinishedLoans())
+            <div class="mb-4 p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-xs flex items-start gap-2">
+                <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <strong>Perhatian:</strong> Anda belum dapat mengajukan peminjaman baru karena masih memiliki peminjaman sebelumnya yang belum selesai (menunggu persetujuan/penolakan petugas, atau buku belum dikembalikan).
+                </div>
+            </div>
+        @endif
+
         <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
             <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
-                <span class="font-semibold text-slate-700">Daftar Buku Terpilih ({{ $books->count() }} dari maks. {{ $max }} buku)</span>
+                <span class="font-semibold text-slate-700">Daftar Buku Terpilih ({{ $books->count() }} dari batas maksimal {{ $max }} judul buku dalam sekali pengajuan)</span>
                 <form method="POST" action="{{ route('cart.clear') }}" onsubmit="return confirm('Kosongkan seluruh buku dari keranjang?');">
                     @csrf @method('DELETE')
                     <button type="submit" class="text-rose-600 hover:text-rose-700 hover:underline text-[11px] font-medium transition">
@@ -112,7 +123,9 @@
 
                     <div class="flex items-center justify-between pt-2">
                         <span class="text-xs text-slate-500">Struk otomatis diterbitkan setelah pengajuan</span>
-                        <button type="submit" class="btn-press px-5 py-2.5 bg-[#1a4f8b] hover:bg-[#153e75] text-white font-semibold text-xs rounded-xl shadow-2xs transition active:scale-95">
+                        <button type="submit" 
+                                @if(auth()->user()->isMurid() && auth()->user()->hasUnfinishedLoans()) disabled title="Anda masih memiliki peminjaman yang belum selesai" @endif 
+                                class="btn-press px-5 py-2.5 bg-[#1a4f8b] hover:bg-[#153e75] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-xs rounded-xl shadow-2xs transition active:scale-95">
                             {{ auth()->user()->isPustakawan() ? 'Catat Peminjaman & Buat Struk' : 'Ajukan Peminjaman & Terbitkan Struk' }} &rarr;
                         </button>
                     </div>

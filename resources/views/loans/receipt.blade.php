@@ -82,6 +82,20 @@
                     </form>
                 @endcan
 
+                @can('reject', $receipt)
+                    <form method="POST" action="{{ route('loan-receipts.reject', $receipt) }}" class="inline-flex items-center gap-2" onsubmit="return confirm('Apakah Anda yakin ingin menolak pengajuan peminjaman ini?');">
+                        @csrf
+                        <input type="text" name="librarian_notes" placeholder="Alasan penolakan (opsional)" class="rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-rose-500 focus:border-rose-500 bg-white shadow-xs">
+                        <button type="submit" 
+                                class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Tolak Pengajuan</span>
+                        </button>
+                    </form>
+                @endcan
+
                 <button onclick="window.print()" 
                         class="btn-sheen inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#102a54] to-[#1a4f8b] hover:from-[#0d2244] hover:to-[#153e75] rounded-xl shadow-xs transition active:scale-95">
                     <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,6 +218,8 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">Menunggu Persetujuan</span>
                         @elseif ($receipt->status === 'dikembalikan')
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">Sudah Dikembalikan</span>
+                        @elseif ($receipt->status === 'ditolak')
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200">Ditolak</span>
                         @else
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-100 text-[#102a54] border border-blue-200">Disetujui / Aktif</span>
                         @endif
@@ -262,6 +278,15 @@
                 </svg>
                 <div class="leading-relaxed">
                     <strong>Pemberitahuan:</strong> Struk ini merupakan bukti reservasi digital. Silakan tunjukkan struk ini kepada Pustakawan di loket sirkulasi untuk serah terima fisik buku dan aktivasi peminjaman.
+                </div>
+            </div>
+        @elseif ($receipt->status === 'ditolak')
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs flex items-start gap-2">
+                <svg class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div class="leading-relaxed">
+                    Pengajuan peminjaman ini telah <strong>ditolak</strong> oleh petugas perpustakaan.@if($receipt->loans->first()?->librarian_notes) <span class="block mt-1 font-medium">Alasan: {{ $receipt->loans->first()->librarian_notes }}</span>@endif
                 </div>
             </div>
         @else

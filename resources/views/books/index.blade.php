@@ -255,6 +255,12 @@
                                 <div class="font-mono text-[10px] text-gray-400">ISBN: {{ $book->isbn }}</div>
                             </div>
                         </div>
+                        @if($book->jumlah_halaman)
+                            <div class="flex items-center justify-between">
+                                <span>Halaman:</span>
+                                <span class="text-slate-600">{{ number_format($book->jumlah_halaman) }} hlm</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
