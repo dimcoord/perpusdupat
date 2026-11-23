@@ -16,32 +16,16 @@ RUN npm run build
 # ==========================================
 FROM php:8.3-fpm-alpine
 
-# Install dependensi sistem dan ekstensi PHP
+# Install dependensi sistem dasar
 RUN apk add --no-cache \
     nginx \
     supervisor \
     curl \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    libzip-dev \
-    sqlite \
-    sqlite-dev \
-    icu-dev \
-    oniguruma-dev \
-    libxml2-dev
+    sqlite
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        pdo_sqlite \
-        sqlite3 \
-        gd \
-        zip \
-        bcmath \
-        intl \
-        mbstring \
-        xml \
-        opcache
+# Install ekstensi PHP menggunakan script installer teruji (otomatis kelola build tools, dependensi C/C++, dan flags)
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+RUN install-php-extensions gd zip bcmath intl opcache pdo_sqlite
 
 # Salin Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
