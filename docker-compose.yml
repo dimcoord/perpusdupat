@@ -20,6 +20,6 @@ services:
       QUEUE_CONNECTION: database
       RUN_MIGRATIONS: "true"
     volumes:
-      # Persistent volume untuk database SQLite dan aset upload buku
-      - ./database_data:/var/www/html/database
+      # Persistent volume langsung ke file database SQLite agar folder migrations & seeders tidak tertimpa
+      - ./database_data/database.sqlite:/var/www/html/database/database.sqlite
       - ./storage_data:/var/www/html/storage/app/public

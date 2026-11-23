@@ -24,6 +24,19 @@ chmod -R 775 /var/www/html/storage
 chown -R www-data:www-data /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/bootstrap/cache
 
+# Pastikan file .env ada
+if [ ! -f /var/www/html/.env ]; then
+    cp /var/www/html/.env.example /var/www/html/.env
+fi
+
+# Jika APP_KEY kosong dari environment, gunakan atau buatkan otomatis di .env
+if [ -z "$APP_KEY" ]; then
+    if ! grep -q "^APP_KEY=base64:" /var/www/html/.env; then
+        php artisan key:generate --force --no-interaction
+    fi
+    export APP_KEY=$(grep "^APP_KEY=" /var/www/html/.env | cut -d '=' -f2-)
+fi
+
 # Buat symbolic link storage jika belum terhubung
 php artisan storage:link --no-interaction || true
 
