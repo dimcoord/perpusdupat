@@ -90,12 +90,21 @@
         <div class="lg:col-span-7 p-6 sm:p-8 lg:p-9 flex flex-col justify-between bg-white overflow-hidden">
             <div>
                 <!-- Form Heading -->
-                <div class="mb-5">
+                <div class="mb-4">
                     <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Selamat Datang Kembali!</h2>
                     <p class="text-xs text-slate-500 mt-1">
                         Silakan masukkan kredensial perpustakaan Anda untuk masuk.
                     </p>
                 </div>
+
+                @if (session('success'))
+                    <div class="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2 shadow-xs">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ session('success') }}</span>
+                    </div>
+                @endif
 
                 <!-- Login Form -->
                 <form method="POST" action="{{ route('login') }}" class="space-y-3.5">
@@ -202,6 +211,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                     </button>
+
+                    <!-- Register Link -->
+                    <div class="text-center pt-2 text-xs text-slate-500">
+                        Belum memiliki akun perpustakaan? 
+                        <a href="{{ route('register') }}" class="font-semibold text-[#1a4f8b] hover:text-[#102a54] hover:underline transition">Daftar Akun Baru &rarr;</a>
+                    </div>
                 </form>
             </div>
         </div>

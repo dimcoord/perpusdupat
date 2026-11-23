@@ -20,6 +20,12 @@ class LoanReceipt extends Model
 
     public const STATUS_REJECTED = 'ditolak';
 
+    public const EXTENSION_PENDING = 'menunggu_persetujuan';
+
+    public const EXTENSION_APPROVED = 'disetujui';
+
+    public const EXTENSION_REJECTED = 'ditolak';
+
     protected $fillable = [
         'receipt_number',
         'user_id',
@@ -27,11 +33,17 @@ class LoanReceipt extends Model
         'loan_date',
         'due_date',
         'status',
+        'extension_status',
+        'extension_count',
+        'extension_requested_at',
+        'extension_notes',
     ];
 
     protected $casts = [
         'loan_date' => 'date',
         'due_date' => 'date',
+        'extension_requested_at' => 'datetime',
+        'extension_count' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -57,6 +69,46 @@ class LoanReceipt extends Model
     public function isRejected(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isExtensionPending(): bool
+    {
+        return $this->extension_status === self::EXTENSION_PENDING;
+    }
+
+    public function isExtensionApproved(): bool
+    {
+        return $this->extension_status === self::EXTENSION_APPROVED;
+    }
+
+    public function isExtensionRejected(): bool
+    {
+        return $this->extension_status === self::EXTENSION_REJECTED;
+    }
+
+    public function canBeExtended(): bool
+    {
+        // Harus berstatus disetujui/aktif dipinjam
+        if ($this->status !== self::STATUS_APPROVED) {
+            return false;
+        }
+
+        // Tidak boleh sedang menunggu persetujuan perpanjangan
+        if ($this->isExtensionPending()) {
+            return false;
+        }
+
+        // Maksimal 1 kali perpanjangan dan belum pernah ditolak
+        if ($this->extension_count >= 1 || $this->extension_status === self::EXTENSION_REJECTED) {
+            return false;
+        }
+
+        // Hanya boleh sebelum jatuh tempo (bukan saat terlambat)
+        if ($this->due_date && $this->due_date->isPast()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

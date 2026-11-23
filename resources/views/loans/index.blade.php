@@ -29,6 +29,50 @@
         this.cancelModalOpen = true;
     },
 
+    extendModalOpen: false,
+    extendUrl: '',
+    extendReceiptNumber: '',
+    extendDueDate: '',
+    extendBookCount: 1,
+
+    openExtendModal(url, receiptNumber, dueDate, bookCount) {
+        this.extendUrl = url;
+        this.extendReceiptNumber = receiptNumber;
+        this.extendDueDate = dueDate;
+        this.extendBookCount = bookCount;
+        this.extendModalOpen = true;
+    },
+
+    approveExtendModalOpen: false,
+    approveExtendUrl: '',
+    approveExtendReceiptNumber: '',
+    approveExtendStudentName: '',
+    approveExtendCurrentDue: '',
+    approveExtendMinDate: '',
+    approveExtendDefaultDate: '',
+
+    openApproveExtendModal(url, receiptNumber, studentName, currentDue, minDate, defaultDate) {
+        this.approveExtendUrl = url;
+        this.approveExtendReceiptNumber = receiptNumber;
+        this.approveExtendStudentName = studentName;
+        this.approveExtendCurrentDue = currentDue;
+        this.approveExtendMinDate = minDate;
+        this.approveExtendDefaultDate = defaultDate;
+        this.approveExtendModalOpen = true;
+    },
+
+    rejectExtendModalOpen: false,
+    rejectExtendUrl: '',
+    rejectExtendReceiptNumber: '',
+    rejectExtendStudentName: '',
+
+    openRejectExtendModal(url, receiptNumber, studentName) {
+        this.rejectExtendUrl = url;
+        this.rejectExtendReceiptNumber = receiptNumber;
+        this.rejectExtendStudentName = studentName;
+        this.rejectExtendModalOpen = true;
+    },
+
     bookSearch: '',
     selectedBooks: [],
     maxBooks: {{ \App\Http\Controllers\CartController::MAX_ITEMS }},
@@ -94,6 +138,7 @@
                 $statusTabs = [
                     '' => 'Semua Struk',
                     'menunggu_persetujuan' => 'Menunggu Persetujuan',
+                    'perpanjangan' => 'Perpanjangan',
                     'dipinjam' => 'Sedang Dipinjam',
                     'terlambat' => 'Terlambat',
                     'kembali' => 'Sudah Kembali',
@@ -234,6 +279,13 @@
                                         </span>
                                         <span class="text-[9px] text-amber-600 mt-0.5 font-medium">Ambil loket maks. 2 hari</span>
                                     </div>
+                                @elseif($receipt->isExtensionPending())
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                            Dipinjam
+                                        </span>
+                                        <span class="text-[9px] text-amber-600 mt-0.5 font-medium">Perpanjangan diajukan</span>
+                                    </div>
                                 @elseif($isOverdue)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
                                         Terlambat
@@ -243,25 +295,51 @@
                                         Kembali
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                        Dipinjam
-                                    </span>
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                            Dipinjam
+                                        </span>
+                                        @if($receipt->extension_count > 0)
+                                            <span class="text-[9px] text-emerald-600 mt-0.5 font-medium">Diperpanjang ({{ $receipt->extension_count }}x)</span>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-right pr-6 whitespace-nowrap">
                                 <div class="inline-flex items-center justify-end gap-2">
-                                    @if(auth()->user()->isPustakawan() && $isPending)
-                                        <button type="button" 
-                                                @click="openApproveModal('{{ route('loan-receipts.approve', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ addslashes($receipt->user?->name ?? 'Siswa') }}', {{ $receipt->loans->count() }})"
-                                                class="btn-press px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 text-slate-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
-                                            Setujui
-                                        </button>
-                                    @elseif(auth()->user()->isMurid() && $isPending)
-                                        <button type="button" 
-                                                @click="openCancelModal('{{ route('loan-receipts.cancel', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', {{ $receipt->loans->count() }})"
-                                                class="btn-press px-2.5 py-1 rounded-lg bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
-                                            Batalkan
-                                        </button>
+                                    @if(auth()->user()->isPustakawan())
+                                        @if($isPending)
+                                            <button type="button" 
+                                                    @click="openApproveModal('{{ route('loan-receipts.approve', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ addslashes($receipt->user?->name ?? 'Siswa') }}', {{ $receipt->loans->count() }})"
+                                                    class="btn-press px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 text-slate-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                                Setujui
+                                            </button>
+                                        @elseif($receipt->isExtensionPending())
+                                            <button type="button" 
+                                                    @click="openApproveExtendModal('{{ route('loan-receipts.approve-extension', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ addslashes($receipt->user?->name ?? 'Siswa') }}', '{{ $receipt->due_date ? $receipt->due_date->translatedFormat('d F Y') : '-' }}', '{{ $receipt->due_date ? $receipt->due_date->copy()->addDay()->toDateString() : date('Y-m-d') }}', '{{ $receipt->due_date ? $receipt->due_date->copy()->addDays(7)->toDateString() : date('Y-m-d', strtotime('+7 days')) }}')"
+                                                    class="btn-press px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                                ACC Perpanjang
+                                            </button>
+                                            <button type="button" 
+                                                    @click="openRejectExtendModal('{{ route('loan-receipts.reject-extension', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ addslashes($receipt->user?->name ?? 'Siswa') }}')"
+                                                    class="btn-press px-2 py-1 rounded-lg bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                                Tolak
+                                            </button>
+                                        @endif
+                                    @elseif(auth()->user()->isMurid())
+                                        @if($isPending)
+                                            <button type="button" 
+                                                    @click="openCancelModal('{{ route('loan-receipts.cancel', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', {{ $receipt->loans->count() }})"
+                                                    class="btn-press px-2.5 py-1 rounded-lg bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                                Batalkan
+                                            </button>
+                                        @elseif($receipt->canBeExtended())
+                                            <button type="button" 
+                                                    @click="openExtendModal('{{ route('loan-receipts.extend', $receipt) }}', '{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}', '{{ $receipt->due_date ? $receipt->due_date->translatedFormat('d F Y') : '-' }}', {{ $receipt->loans->count() }})"
+                                                    class="btn-press px-2.5 py-1 rounded-lg bg-white border border-[#1a4f8b]/30 hover:bg-[#1a4f8b] hover:text-white text-[#1a4f8b] text-xs font-semibold transition active:scale-[0.98] shadow-2xs text-center">
+                                                Perpanjang
+                                            </button>
+                                        @endif
                                     @endif
                                     <a href="{{ $url }}" class="btn-press inline-flex items-center justify-center gap-1 w-24 py-1 px-2.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98] shrink-0">
                                         <span>Lihat Struk</span>
@@ -438,5 +516,155 @@
             </div>
         </div>
     @endif
+    <!-- Modal Ajukan Perpanjangan oleh Siswa -->
+    <div x-cloak x-show="extendModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div @click.outside="extendModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#1a4f8b] flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Ajukan Perpanjangan Peminjaman</h3>
+                    <p class="text-xs text-gray-500">Perpanjangan masa pinjam buku</p>
+                </div>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">No. Struk:</span>
+                    <span class="font-mono font-semibold text-[#1a4f8b]" x-text="extendReceiptNumber"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Batas Kembali Saat Ini:</span>
+                    <span class="font-semibold text-slate-800" x-text="extendDueDate"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Jumlah Buku:</span>
+                    <span class="font-semibold text-slate-800" x-text="extendBookCount + ' buku'"></span>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Perpanjangan berlaku untuk seluruh buku pada struk ini dan hanya dapat dilakukan maksimal 1 kali. Pengajuan akan diproses dan diverifikasi oleh pustakawan loket.
+            </p>
+
+            <form :action="extendUrl" method="POST" class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                @csrf
+                <button type="button" @click="extendModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                    Batal
+                </button>
+                <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                    Ya, Kirim Pengajuan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Setujui Perpanjangan oleh Pustakawan -->
+    <div x-cloak x-show="approveExtendModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div @click.outside="approveExtendModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Setujui Perpanjangan Peminjaman</h3>
+                    <p class="text-xs text-gray-500">Tentukan batas kembali baru untuk struk ini</p>
+                </div>
+            </div>
+
+            <form :action="approveExtendUrl" method="POST" class="space-y-4 text-xs">
+                @csrf
+                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">No. Struk:</span>
+                        <span class="font-mono font-semibold text-[#1a4f8b]" x-text="approveExtendReceiptNumber"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Peminjam:</span>
+                        <span class="font-semibold text-slate-800" x-text="approveExtendStudentName"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Jatuh Tempo Lama:</span>
+                        <span class="font-semibold text-slate-700" x-text="approveExtendCurrentDue"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Tanggal Jatuh Tempo Baru:</label>
+                    <input type="date" 
+                           name="new_due_date" 
+                           required 
+                           :min="approveExtendMinDate" 
+                           :value="approveExtendDefaultDate" 
+                           class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white">
+                    <span class="text-[10px] text-slate-500 mt-1 block">Rekomendasi otomatis: +7 hari dari batas waktu saat ini.</span>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Catatan Pustakawan (Opsional):</label>
+                    <textarea name="notes" rows="2" placeholder="Catatan perpanjangan..." class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="approveExtendModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                        Setujui Perpanjangan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Tolak Perpanjangan oleh Pustakawan -->
+    <div x-cloak x-show="rejectExtendModalOpen" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+        <div @click.outside="rejectExtendModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-900 text-sm">Tolak Pengajuan Perpanjangan</h3>
+                    <p class="text-xs text-gray-500">Konfirmasi penolakan perpanjangan struk</p>
+                </div>
+            </div>
+
+            <form :action="rejectExtendUrl" method="POST" class="space-y-4 text-xs">
+                @csrf
+                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">No. Struk:</span>
+                        <span class="font-mono font-semibold text-[#1a4f8b]" x-text="rejectExtendReceiptNumber"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">Peminjam:</span>
+                        <span class="font-semibold text-slate-800" x-text="rejectExtendStudentName"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Alasan Penolakan (Opsional):</label>
+                    <textarea name="notes" rows="2" placeholder="Contoh: Buku telah direservasi peminjam lain..." class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" @click="rejectExtendModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                        Tolak Perpanjangan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 @endsection

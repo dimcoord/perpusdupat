@@ -60,6 +60,7 @@ class LoanController extends Controller
 
         match ($status) {
             'menunggu_persetujuan' => $query->where('status', LoanReceipt::STATUS_PENDING),
+            'perpanjangan' => $query->where('status', LoanReceipt::STATUS_APPROVED)->where('extension_status', LoanReceipt::EXTENSION_PENDING),
             'dipinjam' => $query->where('status', LoanReceipt::STATUS_APPROVED),
             'terlambat' => $query->where('status', LoanReceipt::STATUS_APPROVED)->whereDate('due_date', '<', Carbon::today()),
             'kembali' => $query->where('status', LoanReceipt::STATUS_RETURNED),

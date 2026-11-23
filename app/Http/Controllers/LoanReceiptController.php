@@ -192,4 +192,95 @@ class LoanReceiptController extends Controller
         return redirect()->route('loan-receipts.show', $receipt)
             ->with('success', 'Semua buku pada struk '.$receipt->receipt_number.' berhasil dikembalikan.');
     }
+
+    /**
+     * Student requests extension for this receipt.
+     */
+    public function requestExtension(Request $request, LoanReceipt $receipt): RedirectResponse
+    {
+        Gate::authorize('requestExtension', $receipt);
+
+        if (! $receipt->canBeExtended()) {
+            return back()->with('error', 'Peminjaman ini tidak memenuhi syarat untuk diperpanjang.');
+        }
+
+        $receipt->update([
+            'extension_status' => LoanReceipt::EXTENSION_PENDING,
+            'extension_requested_at' => now(),
+        ]);
+
+        return back()->with('success', 'Pengajuan perpanjangan peminjaman berhasil dikirim. Menunggu persetujuan pustakawan.');
+    }
+
+    /**
+     * Librarian approves extension with flexible new due date.
+     */
+    public function approveExtension(Request $request, LoanReceipt $receipt): RedirectResponse
+    {
+        Gate::authorize('approveExtension', $receipt);
+
+        $request->validate([
+            'new_due_date' => ['required', 'date', 'after:'.$receipt->due_date->toDateString()],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $newDueDate = Carbon::parse($request->input('new_due_date'));
+
+        try {
+            DB::transaction(function () use ($receipt, $newDueDate, $request) {
+                $receipt = LoanReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+
+                if (! $receipt->isExtensionPending()) {
+                    throw new \DomainException('Pengajuan perpanjangan tidak ditemukan atau sudah diproses.');
+                }
+
+                $receipt->update([
+                    'due_date' => $newDueDate->toDateString(),
+                    'extension_status' => LoanReceipt::EXTENSION_APPROVED,
+                    'extension_count' => $receipt->extension_count + 1,
+                    'extension_notes' => $request->input('notes'),
+                ]);
+
+                $receipt->loans()->whereIn('status', ['dipinjam', 'terlambat'])->update([
+                    'due_date' => $newDueDate->toDateString(),
+                    'status' => 'dipinjam',
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Perpanjangan peminjaman berhasil disetujui hingga '.$newDueDate->translatedFormat('d F Y').'.');
+    }
+
+    /**
+     * Librarian rejects extension request.
+     */
+    public function rejectExtension(Request $request, LoanReceipt $receipt): RedirectResponse
+    {
+        Gate::authorize('rejectExtension', $receipt);
+
+        $request->validate([
+            'notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            DB::transaction(function () use ($receipt, $request) {
+                $receipt = LoanReceipt::whereKey($receipt->id)->lockForUpdate()->firstOrFail();
+
+                if (! $receipt->isExtensionPending()) {
+                    throw new \DomainException('Pengajuan perpanjangan tidak ditemukan atau sudah diproses.');
+                }
+
+                $receipt->update([
+                    'extension_status' => LoanReceipt::EXTENSION_REJECTED,
+                    'extension_notes' => $request->input('notes'),
+                ]);
+            });
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Pengajuan perpanjangan peminjaman telah ditolak.');
+    }
 }

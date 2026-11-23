@@ -53,7 +53,7 @@
     }
 </style>
 
-<div class="max-w-3xl mx-auto receipt-container pb-12" x-data="{ approveModal: false, rejectModal: false, returnModal: false, cancelModal: false }">
+<div class="max-w-3xl mx-auto receipt-container pb-12" x-data="{ approveModal: false, rejectModal: false, returnModal: false, cancelModal: false, extendModal: false, approveExtendModal: false, rejectExtendModal: false }">
     <!-- Action Toolbar (Hidden when printing) -->
     <div class="no-print mb-6 space-y-3">
         <!-- Main Buttons Bar -->
@@ -104,6 +104,17 @@
                     @endif
                 @endcan
 
+                @can('requestExtension', $receipt)
+                    <button type="button" 
+                            @click="extendModal = true"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-[#1a4f8b] hover:bg-[#153e75] rounded-xl shadow-xs transition active:scale-95">
+                        <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Ajukan Perpanjangan</span>
+                    </button>
+                @endcan
+
                 <button onclick="window.print()" 
                         class="btn-sheen inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#102a54] to-[#1a4f8b] hover:from-[#0d2244] hover:to-[#153e75] rounded-xl shadow-xs transition active:scale-95">
                     <svg class="w-4 h-4 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +124,59 @@
                 </button>
             </div>
         </div>
+
+        @if($receipt->isExtensionPending())
+            <!-- Extension Pending Banner -->
+            <div class="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-amber-900">Pengajuan Perpanjangan Peminjaman</div>
+                        <div class="text-[11px] text-amber-700">
+                            Diajukan pada {{ $receipt->extension_requested_at?->translatedFormat('d F Y, H:i') ?? '-' }}. Menunggu persetujuan pustakawan loket.
+                        </div>
+                    </div>
+                </div>
+                @if(auth()->user()->isPustakawan())
+                    <div class="flex items-center gap-2">
+                        <button type="button" 
+                                @click="approveExtendModal = true"
+                                class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span>Setujui Perpanjangan</span>
+                        </button>
+                        <button type="button" 
+                                @click="rejectExtendModal = true"
+                                class="btn-press inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-rose-700 bg-white hover:bg-rose-50 border border-rose-300 rounded-xl shadow-xs transition active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span>Tolak</span>
+                        </button>
+                    </div>
+                @endif
+            </div>
+        @elseif($receipt->isExtensionApproved())
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 text-xs text-emerald-800 shadow-xs">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Peminjaman pada struk ini telah diperpanjang 1x (Batas kembali baru: <strong>{{ $receipt->due_date->translatedFormat('d F Y') }}</strong>).@if($receipt->extension_notes) <span class="text-emerald-700 font-medium">Catatan: {{ $receipt->extension_notes }}</span>@endif</span>
+            </div>
+        @elseif($receipt->isExtensionRejected())
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-800 shadow-xs">
+                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Pengajuan perpanjangan untuk struk ini ditolak. Batas kembali tetap sesuai tanggal semula: <strong>{{ $receipt->due_date->translatedFormat('d F Y') }}</strong>.@if($receipt->extension_notes) <span class="text-rose-700 font-medium">Alasan: {{ $receipt->extension_notes }}</span>@endif</span>
+            </div>
+        @endif
 
         <!-- Librarian Return Bulk Action -->
         @can('returnBook', $receipt)
@@ -214,6 +278,20 @@
                     <span class="w-28 text-slate-500">Batas Kembali</span>
                     <span class="text-slate-900 font-bold text-rose-700">: {{ $receipt->due_date->translatedFormat('d F Y') }}</span>
                 </div>
+                @if ($receipt->extension_count > 0 || $receipt->extension_status)
+                    <div class="flex">
+                        <span class="w-28 text-slate-500">Perpanjangan</span>
+                        <span class="font-semibold">: 
+                            @if($receipt->isExtensionPending())
+                                <span class="text-amber-700">Menunggu Persetujuan Loket</span>
+                            @elseif($receipt->isExtensionApproved())
+                                <span class="text-emerald-700">Sudah Diperpanjang ({{ $receipt->extension_count }}x)</span>
+                            @elseif($receipt->isExtensionRejected())
+                                <span class="text-rose-700">Ditolak</span>
+                            @endif
+                        </span>
+                    </div>
+                @endif
                 @if ($receipt->status === 'dikembalikan')
                     <div class="flex">
                         <span class="w-28 text-slate-500">Tgl Dikembalikan</span>
@@ -478,6 +556,163 @@
                         <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
                             Ya, Batalkan Pengajuan
                         </button>
+                    </form>
+                </div>
+            </div>
+        @endcan
+
+        @can('requestExtension', $receipt)
+            <!-- Modal Ajukan Perpanjangan oleh Siswa -->
+            <div x-cloak x-show="extendModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                <div @click.outside="extendModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#1a4f8b] flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Ajukan Perpanjangan Peminjaman</h3>
+                            <p class="text-xs text-gray-500">Perpanjangan masa pinjam buku</p>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">No. Struk:</span>
+                            <span class="font-mono font-semibold text-[#1a4f8b]">{{ $receipt->receipt_number ?? '#'.str_pad($receipt->id, 5, '0', STR_PAD_LEFT) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Batas Kembali Saat Ini:</span>
+                            <span class="font-semibold text-slate-800">{{ $receipt->due_date->translatedFormat('d F Y') }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-500">Jumlah Buku:</span>
+                            <span class="font-semibold text-slate-800">{{ $receipt->loans->count() }} buku</span>
+                        </div>
+                    </div>
+
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Perpanjangan berlaku untuk seluruh buku pada struk ini dan hanya dapat dilakukan maksimal 1 kali. Pengajuan akan diproses dan diverifikasi oleh pustakawan loket.
+                    </p>
+
+                    <form method="POST" action="{{ route('loan-receipts.extend', $receipt) }}" class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                        @csrf
+                        <button type="button" @click="extendModal = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                            Ya, Kirim Pengajuan
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endcan
+
+        @can('approveExtension', $receipt)
+            <!-- Modal Setujui Perpanjangan oleh Pustakawan -->
+            <div x-cloak x-show="approveExtendModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                <div @click.outside="approveExtendModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Setujui Perpanjangan Peminjaman</h3>
+                            <p class="text-xs text-gray-500">Tentukan batas kembali baru untuk struk ini</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('loan-receipts.approve-extension', $receipt) }}" class="space-y-4 text-xs">
+                        @csrf
+                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">No. Struk:</span>
+                                <span class="font-mono font-semibold text-[#1a4f8b]">{{ $receipt->receipt_number }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Peminjam:</span>
+                                <span class="font-semibold text-slate-800">{{ $receipt->user?->name }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Jatuh Tempo Lama:</span>
+                                <span class="font-semibold text-slate-700">{{ $receipt->due_date->translatedFormat('d F Y') }}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Tanggal Jatuh Tempo Baru:</label>
+                            <input type="date" 
+                                   name="new_due_date" 
+                                   required 
+                                   min="{{ $receipt->due_date->copy()->addDay()->toDateString() }}" 
+                                   value="{{ $receipt->due_date->copy()->addDays(7)->toDateString() }}" 
+                                   class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white">
+                            <span class="text-[10px] text-slate-500 mt-1 block">Rekomendasi otomatis: +7 hari dari batas waktu saat ini.</span>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Catatan Pustakawan (Opsional):</label>
+                            <textarea name="notes" rows="2" placeholder="Catatan perpanjangan..." class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button type="button" @click="approveExtendModal = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                                Setujui Perpanjangan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endcan
+
+        @can('rejectExtension', $receipt)
+            <!-- Modal Tolak Perpanjangan oleh Pustakawan -->
+            <div x-cloak x-show="rejectExtendModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                <div @click.outside="rejectExtendModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Tolak Pengajuan Perpanjangan</h3>
+                            <p class="text-xs text-gray-500">Konfirmasi penolakan perpanjangan struk</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('loan-receipts.reject-extension', $receipt) }}" class="space-y-4 text-xs">
+                        @csrf
+                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">No. Struk:</span>
+                                <span class="font-mono font-semibold text-[#1a4f8b]">{{ $receipt->receipt_number }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500">Peminjam:</span>
+                                <span class="font-semibold text-slate-800">{{ $receipt->user?->name }}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Alasan Penolakan (Opsional):</label>
+                            <textarea name="notes" rows="2" placeholder="Contoh: Buku telah direservasi peminjam lain..." class="w-full rounded-xl border-slate-300 text-xs px-3 py-2 focus:ring-[#1a4f8b] focus:border-[#1a4f8b] bg-white"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                            <button type="button" @click="rejectExtendModal = false" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn-press px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition active:scale-[0.98]">
+                                Tolak Perpanjangan
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

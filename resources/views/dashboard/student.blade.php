@@ -503,7 +503,7 @@
                                 <span class="text-[10px] font-semibold text-[#1a4f8b] uppercase tracking-wide">
                                     Rak: {{ $loan->book?->rack_location ?? '01' }}
                                 </span>
-                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug truncate">
+                                <h4 class="text-xs sm:text-sm font-bold text-slate-900 leading-snug truncate lg:max-w-sm">
                                     {{ $loan->book?->title ?? '-' }}
                                 </h4>
                                 <p class="text-xs text-slate-500 mt-0.5 truncate">
@@ -520,6 +520,13 @@
                                     </svg>
                                     <span>Menunggu Persetujuan</span>
                                 </span>
+                            @elseif($loan->receipt?->isExtensionPending())
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Perpanjangan Diajukan</span>
+                                </span>
                             @elseif($isOverdue)
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                                     <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -528,12 +535,19 @@
                                     <span>Terlambat (Tempo: {{ \Carbon\Carbon::parse($loan->due_date)->format('d M') }})</span>
                                 </span>
                             @else
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span>Dipinjam (Tempo: {{ \Carbon\Carbon::parse($loan->due_date)->format('d M') }})</span>
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <span>Dipinjam (Tempo: {{ \Carbon\Carbon::parse($loan->due_date)->format('d M') }})</span>
+                                    </span>
+                                    @if($loan->receipt?->canBeExtended())
+                                        <a href="{{ route('loan-receipts.show', $loan->receipt) }}" @click.stop class="btn-press px-2 py-0.5 rounded-md bg-white border border-[#1a4f8b]/30 hover:bg-[#1a4f8b] hover:text-white text-[#1a4f8b] text-[10px] font-semibold transition shadow-2xs">
+                                            Perpanjang
+                                        </a>
+                                    @endif
+                                </div>
                             @endif
                             <span class="text-[10px] text-slate-400 font-mono">Tgl Pinjam: {{ \Carbon\Carbon::parse($loan->loan_date)->format('d/m/Y') }}</span>
                         </div>
