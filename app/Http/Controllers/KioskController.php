@@ -34,20 +34,31 @@ class KioskController extends Controller
     }
 
     /**
-     * Fast AJAX check-in endpoint for kiosk (email + password).
+     * Fast AJAX check-in endpoint for kiosk (email/NIS + password).
      */
     public function checkIn(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required_without:login', 'nullable', 'string'],
+            'login' => ['required_without:email', 'nullable', 'string'],
             'password' => ['required', 'string'],
             'purpose' => ['required', Rule::in(['Presensi', 'Pinjam Buku'])],
         ]);
 
-        $email = Str::lower(trim($validated['email']));
+        $identifier = trim($validated['login'] ?? $validated['email'] ?? '');
 
-        // Batasi percobaan brute force per email + IP kiosk
-        $throttleKey = 'kiosk-checkin|' . $email . '|' . $request->ip();
+        if ($identifier === '') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau NIS wajib diisi.',
+            ], 422);
+        }
+
+        $fieldType = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'nis_nip';
+        $userIdentifier = $fieldType === 'email' ? Str::lower($identifier) : $identifier;
+
+        // Batasi percobaan brute force per identifier + IP kiosk
+        $throttleKey = 'kiosk-checkin|'.$userIdentifier.'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -59,18 +70,20 @@ class KioskController extends Controller
         }
 
         // validate() hanya mengecek kredensial, tidak membuat sesi login di PC kiosk
-        if (! Auth::validate(['email' => $email, 'password' => $validated['password']])) {
+        if (! Auth::validate([$fieldType => $userIdentifier, 'password' => $validated['password']])) {
             RateLimiter::hit($throttleKey, 60);
+
+            $errorMessage = $fieldType === 'email' ? 'Email atau kata sandi salah.' : 'NIS atau kata sandi salah.';
 
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau kata sandi salah.',
+                'message' => $errorMessage,
             ], 422);
         }
 
         RateLimiter::clear($throttleKey);
 
-        $user = User::where('email', $email)->firstOrFail();
+        $user = User::where($fieldType, $userIdentifier)->firstOrFail();
 
         $today = Carbon::today()->toDateString();
 

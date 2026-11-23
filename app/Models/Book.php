@@ -24,7 +24,9 @@ class Book extends Model
         'author',
         'publisher',
         'publication_year',
+        'jumlah_halaman',
         'rack_location',
+        'sinopsis',
         'total_stock',
         'available_stock',
         'cover_image',
@@ -48,6 +50,7 @@ class Book extends Model
     {
         return [
             'publication_year' => 'integer',
+            'jumlah_halaman' => 'integer',
             'total_stock' => 'integer',
             'available_stock' => 'integer',
         ];
@@ -67,6 +70,19 @@ class Book extends Model
         }
 
         return asset('storage/'.$this->cover_image);
+    }
+
+    /**
+     * Get or set tahun terbit (alias for publication_year).
+     */
+    public function getTahunTerbitAttribute(): ?int
+    {
+        return $this->publication_year;
+    }
+
+    public function setTahunTerbitAttribute($value): void
+    {
+        $this->attributes['publication_year'] = $value;
     }
 
     /**
@@ -100,6 +116,7 @@ class Book extends Model
             $q->where('isbn', 'like', "%{$term}%")
                 ->orWhere('title', 'like', "%{$term}%")
                 ->orWhere('author', 'like', "%{$term}%")
+                ->orWhere('sinopsis', 'like', "%{$term}%")
                 ->orWhere('rack_location', 'like', "%{$term}%")
                 ->orWhereHas('category', function (Builder $cq) use ($term) {
                     $cq->where('name', 'like', "%{$term}%")

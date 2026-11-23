@@ -13,7 +13,6 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Rap2hpoutre\FastExcel\FastExcel;
@@ -173,7 +172,7 @@ class ExcelReportService
                 'startColor' => ['rgb' => 'E2E8F0'],
             ],
         ]);
-        
+
         $row += 3;
 
         // Footer: Signatures
@@ -474,8 +473,10 @@ class ExcelReportService
             $author = trim((string) ($line['Penulis'] ?? $line['penulis'] ?? $line['Author'] ?? ''));
             $publisher = trim((string) ($line['Penerbit'] ?? $line['penerbit'] ?? $line['Publisher'] ?? ''));
             $year = (int) ($line['Tahun'] ?? $line['tahun'] ?? $line['Year'] ?? 0);
+            $pages = (int) ($line['Jumlah_Halaman'] ?? $line['Halaman'] ?? $line['halaman'] ?? $line['jumlah_halaman'] ?? $line['Pages'] ?? 0);
             $categoryCode = strtolower(trim((string) ($line['Kode_Kategori'] ?? $line['kode_kategori'] ?? $line['Category'] ?? '')));
             $rackLocation = trim((string) ($line['Lokasi_Rak'] ?? $line['lokasi_rak'] ?? $line['Rack'] ?? ''));
+            $sinopsis = trim((string) ($line['Sinopsis'] ?? $line['sinopsis'] ?? $line['Synopsis'] ?? ''));
             $quantity = (int) ($line['Jumlah'] ?? $line['jumlah'] ?? $line['Qty'] ?? $line['Stock'] ?? 1);
 
             // Validation checks
@@ -534,8 +535,10 @@ class ExcelReportService
                     $author,
                     $publisher,
                     $year,
+                    $pages,
                     $category,
                     $rackLocation,
+                    $sinopsis,
                     $quantity,
                     &$importedCount,
                     &$updatedCount
@@ -551,8 +554,14 @@ class ExcelReportService
                         if ($year > 0) {
                             $existing->publication_year = $year;
                         }
+                        if ($pages > 0) {
+                            $existing->jumlah_halaman = $pages;
+                        }
                         if (! empty($rackLocation)) {
                             $existing->rack_location = $rackLocation;
+                        }
+                        if (! empty($sinopsis)) {
+                            $existing->sinopsis = $sinopsis;
                         }
                         $existing->category_id = $category->id;
                         $existing->save();
@@ -565,8 +574,10 @@ class ExcelReportService
                             'author' => $author ?: 'Anonim',
                             'publisher' => $publisher ?: '-',
                             'publication_year' => $year > 0 ? $year : date('Y'),
+                            'jumlah_halaman' => $pages > 0 ? $pages : null,
                             'category_id' => $category->id,
                             'rack_location' => $rackLocation ?: '-',
+                            'sinopsis' => $sinopsis ?: null,
                             'total_stock' => $quantity,
                             'available_stock' => $quantity,
                         ]);

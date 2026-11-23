@@ -82,4 +82,30 @@ class User extends Authenticatable
     {
         return $this->hasMany(Loan::class);
     }
+
+    /**
+     * Loan receipts relationship.
+     */
+    public function loanReceipts(): HasMany
+    {
+        return $this->hasMany(LoanReceipt::class);
+    }
+
+    /**
+     * Check if user has active or unfinished loans (pending, approved, borrowed, or overdue).
+     */
+    public function hasUnfinishedLoans(): bool
+    {
+        LoanReceipt::cancelExpiredPendingReceipts();
+
+        return $this->loanReceipts()
+            ->whereIn('status', [LoanReceipt::STATUS_PENDING, LoanReceipt::STATUS_APPROVED])
+            ->whereHas('loans', function ($q) {
+                $q->whereIn('status', ['menunggu_persetujuan', 'dipinjam', 'terlambat']);
+            })
+            ->exists()
+            || $this->loans()
+                ->whereIn('status', ['menunggu_persetujuan', 'dipinjam', 'terlambat'])
+                ->exists();
+    }
 }

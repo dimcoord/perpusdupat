@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('loans', function (Blueprint $table) {
             // Sesuaikan tipe data ini dengan tipe data awal fine_amount Anda (misal: integer atau decimal)
-            $table->decimal('fine_amount', 10, 2)->default(0)->nullable(); 
+            $table->decimal('fine_amount', 10, 2)->default(0)->nullable();
         });
     }
 };

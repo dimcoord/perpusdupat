@@ -30,6 +30,7 @@ class Loan extends Model
         'return_date',
         'status',
         'librarian_notes',
+        'loan_receipt_id',
     ];
 
     /**
@@ -106,5 +107,10 @@ class Loan extends Model
             'days_overdue' => 0,
             'fine' => 0,
         ];
+    }
+
+    public function receipt(): BelongsTo
+    {
+        return $this->belongsTo(LoanReceipt::class, 'loan_receipt_id');
     }
 }

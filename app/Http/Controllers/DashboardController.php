@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Category;
 use App\Models\Loan;
+use App\Models\LoanReceipt;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -24,6 +26,9 @@ class DashboardController extends Controller
             'available_stock' => (int) Book::sum('available_stock'),
             'today_visits' => Visit::whereDate('visit_date', $today)->count(),
             'pending_loans' => Loan::where('status', 'menunggu_persetujuan')->count(),
+            'pending_extensions' => LoanReceipt::where('status', LoanReceipt::STATUS_APPROVED)
+                ->where('extension_status', LoanReceipt::EXTENSION_PENDING)
+                ->count(),
             'active_loans' => Loan::whereIn('status', ['dipinjam', 'terlambat'])->count(),
             'overdue_loans' => Loan::overdue()->count(),
         ];
@@ -36,7 +41,7 @@ class DashboardController extends Controller
             ->get();
 
         // Recent loans with eager loaded relations
-        $recentLoans = Loan::with(['user:id,name,nis_nip', 'book:id,title,isbn'])
+        $recentLoans = Loan::with(['user:id,name,nis_nip', 'book:id,title,isbn', 'receipt.loans.book'])
             ->latest('id')
             ->take(8)
             ->get();
@@ -61,7 +66,7 @@ class DashboardController extends Controller
             'total_visits' => Visit::where('user_id', $user->id)->count(),
         ];
 
-        $myActiveLoans = Loan::with('book:id,title,author,isbn,rack_location')
+        $myActiveLoans = Loan::with(['book.category', 'receipt'])
             ->where('user_id', $user->id)
             ->whereIn('status', ['dipinjam', 'terlambat', 'menunggu_persetujuan'])
             ->latest('loan_date')
@@ -72,6 +77,19 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard.student', compact('stats', 'myActiveLoans', 'myRecentVisits'));
+        // Rekomendasi & Best Reading Books untuk Siswa
+        $bestReadingBooks = Book::with('category:id,name,code')
+            ->orderBy('available_stock', 'desc')
+            ->latest('id')
+            ->take(6)
+            ->get();
+
+        // Kategori Utama Koleksi Perpustakaan
+        $categories = Category::withCount('books')
+            ->orderByDesc('books_count')
+            ->take(8)
+            ->get();
+
+        return view('dashboard.student', compact('stats', 'myActiveLoans', 'myRecentVisits', 'bestReadingBooks', 'categories'));
     }
 }

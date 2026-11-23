@@ -48,6 +48,14 @@ class LoanPolicy
     }
 
     /**
+     * Determine whether the user can reject the loan.
+     */
+    public function reject(User $user, Loan $loan): bool
+    {
+        return $user->isPustakawan() && $loan->status === 'menunggu_persetujuan';
+    }
+
+    /**
      * Determine whether the user can process book return.
      */
     public function returnBook(User $user, Loan $loan): bool
