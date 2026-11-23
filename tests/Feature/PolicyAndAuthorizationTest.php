@@ -139,3 +139,40 @@ test('librarian can approve loan and return book', function () {
     expect($loan->status)->toBe('kembali');
     expect($book->available_stock)->toBe(3);
 });
+
+test('librarian dashboard displays Lihat Struk button for pending loans', function () {
+    $librarian = User::factory()->create(['nis_nip' => 'LIB001', 'role' => 'pustakawan']);
+    $student = User::factory()->create(['nis_nip' => 'STD001', 'role' => 'murid']);
+    $category = Category::create(['code' => '800', 'name' => 'Sastra']);
+    $book = Book::create([
+        'category_id' => $category->id,
+        'isbn' => '9781111111111',
+        'title' => 'Buku Siswa',
+        'total_stock' => 3,
+        'available_stock' => 3,
+    ]);
+
+    $receipt = LoanReceipt::create([
+        'receipt_number' => 'LN-20261123-00001',
+        'user_id' => $student->id,
+        'status' => 'menunggu_persetujuan',
+        'loan_date' => Carbon::today()->toDateString(),
+        'due_date' => Carbon::today()->addDays(7)->toDateString(),
+    ]);
+
+    $loan = Loan::create([
+        'user_id' => $student->id,
+        'book_id' => $book->id,
+        'loan_receipt_id' => $receipt->id,
+        'loan_date' => Carbon::today()->toDateString(),
+        'due_date' => Carbon::today()->addDays(7)->toDateString(),
+        'status' => 'menunggu_persetujuan',
+    ]);
+
+    $response = $this->actingAs($librarian)->get(route('librarian.dashboard'));
+
+    $response->assertStatus(200);
+    $response->assertSee('Lihat Struk');
+    $response->assertSee(route('loan-receipts.show', $receipt));
+    $response->assertDontSee('Setujui Semua');
+});

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
@@ -25,6 +26,8 @@ Route::get('/', function () {
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
 });
 
 // Authenticated Routes
@@ -84,4 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/loan-receipts/{receipt}/reject', [LoanReceiptController::class, 'reject'])->name('loan-receipts.reject');
     Route::post('/loan-receipts/{receipt}/cancel', [LoanReceiptController::class, 'cancel'])->name('loan-receipts.cancel');
     Route::post('/loan-receipts/{receipt}/return', [LoanReceiptController::class, 'returnAll'])->name('loan-receipts.return');
+    Route::post('/loan-receipts/{receipt}/extend', [LoanReceiptController::class, 'requestExtension'])->name('loan-receipts.extend');
+    Route::post('/loan-receipts/{receipt}/approve-extension', [LoanReceiptController::class, 'approveExtension'])->name('loan-receipts.approve-extension');
+    Route::post('/loan-receipts/{receipt}/reject-extension', [LoanReceiptController::class, 'rejectExtension'])->name('loan-receipts.reject-extension');
 });

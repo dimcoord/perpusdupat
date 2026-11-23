@@ -96,7 +96,15 @@
             </div>
             <div class="mt-3">
                 <div class="text-3xl font-bold text-gray-900 tracking-tight font-sans">{{ number_format($stats['active_loans']) }}</div>
-                <div class="text-[11px] text-amber-600 font-medium mt-1">{{ $stats['pending_loans'] }} menunggu persetujuan</div>
+                <div class="text-[11px] text-amber-600 font-medium mt-1 flex flex-wrap items-center gap-1">
+                    <span>{{ $stats['pending_loans'] }} menunggu persetujuan</span>
+                    @if(($stats['pending_extensions'] ?? 0) > 0)
+                        <span>&bull;</span>
+                        <a href="{{ route('loans.index', ['status' => 'perpanjangan']) }}" class="hover:underline font-semibold text-amber-700">
+                            {{ $stats['pending_extensions'] }} perpanjangan
+                        </a>
+                    @endif
+                </div>
             </div>
         </div>
 
@@ -253,6 +261,10 @@
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                             Menunggu
                                         </span>
+                                    @elseif($receipt?->isExtensionPending())
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            Perpanjangan
+                                        </span>
                                     @elseif($isOverdue)
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                                             Terlambat
@@ -263,13 +275,11 @@
                         </div>
 
                         <div class="flex items-center gap-2 shrink-0">
-                            @if($rowStatus === 'menunggu_persetujuan')
-                                <form method="POST" action="{{ $receipt ? route('loan-receipts.approve', $receipt) : route('loans.approve', $loan) }}">
-                                    @csrf
-                                    <button type="submit" class="btn-press px-3.5 py-1.5 rounded-lg bg-white hover:bg-[#e2e8f0]/40 text-gray-800 text-xs font-semibold border border-[#e2e8f0] transition shadow-2xs">
-                                        {{ $isBundle ? 'Setujui Semua' : 'Setujui' }}
-                                    </button>
-                                </form>
+                            @if($rowStatus === 'menunggu_persetujuan' || $receipt?->isExtensionPending())
+                                <a href="{{ $receipt ? route('loan-receipts.show', $receipt) : route('loans.index') }}" class="btn-press inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs active:scale-[0.98]">
+                                    <span>Lihat Struk</span>
+                                    <span class="text-xs">&rarr;</span>
+                                </a>
                             @elseif(in_array($rowStatus, ['dipinjam', 'terlambat']))
                                 <button type="button" @click="openReturnModal({{ json_encode($returnPayload) }})" class="btn-press px-3.5 py-1.5 rounded-lg bg-[#1a4f8b] hover:bg-[#153e75] text-white text-xs font-medium transition shadow-2xs">
                                     {{ $isBundle ? 'Kembalikan Semua' : 'Kembalikan' }}

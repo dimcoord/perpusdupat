@@ -37,4 +37,19 @@ class LoanReceiptPolicy
     {
         return $receipt->isPending() && ($receipt->user_id === $user->id || $user->isPustakawan());
     }
+
+    public function requestExtension(User $user, LoanReceipt $receipt): bool
+    {
+        return $receipt->user_id === $user->id && $receipt->canBeExtended();
+    }
+
+    public function approveExtension(User $user, LoanReceipt $receipt): bool
+    {
+        return $user->isPustakawan() && $receipt->isExtensionPending();
+    }
+
+    public function rejectExtension(User $user, LoanReceipt $receipt): bool
+    {
+        return $user->isPustakawan() && $receipt->isExtensionPending();
+    }
 }
